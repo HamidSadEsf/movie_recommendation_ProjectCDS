@@ -9,7 +9,7 @@ from scipy import sparse
 from sklearn import neighbors
 
 # load sparce utility matrix
-csr_util_mat = load_npz("sparse_ratings.npz")
+csr_util_mat = load_npz("matrices/sparse_ratings.npz")
 
 def keep_rows_csr(mat, indices):
     """
@@ -56,7 +56,6 @@ def get_predictions(user_id, util_mat, n_predictions):
     distances, indices = nn.kneighbors(target_user_row)
     
     csr_data_closests_users = keep_rows_csr(csr_util_mat, indices)
-    
     rating_aggregation = closest_users_mean_ratings(csr_data_closests_users, util_mat.columns)
 
     return rating_aggregation
