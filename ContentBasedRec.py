@@ -117,10 +117,3 @@ def recommendation(given_movies, number_of_recommendations, df=df_ContBaseRec, l
     # getting the movies from the labled set which shows the title and label
     recommendations = df_scored.sort_values('score', ascending=False).head(number_of_recommendations)
     return recommendations
-
-df_movies = pd.read_csv('movies.csv')
-
-given_movies = [['Akira', '1988'], ['Network', '1976'], ['Prisoners', '2013'], ['Incendies', '2010'],
-                ['red shoes', '1948'], ['metropolis', '1927']]
-
-print(recommendation(given_movies, 20)['title'])
