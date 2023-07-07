@@ -1,8 +1,6 @@
-import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-sns.set()
+import pandas as pd
+
 df_gscore = pd.read_csv('genome-scores.csv')
 df_gtags = pd.read_csv('genome-tags.csv')
 df_links = pd.read_csv('links.csv')
@@ -10,23 +8,15 @@ df_movies = pd.read_csv('movies.csv')
 df_rating = pd.read_csv('ratings.csv')
 df_tagspd = pd.read_csv('tags.csv')
 
-## Creating the genome dataset
+# Creating the genome dataset
 
 df_gtagscore=df_gtags.merge(df_gscore, how='right', on='tagId').drop('tag', axis =1)
-df_gtagscore.drop_duplicates(subset=['tagId', 'movieId'], inplace=True)
+df_gtagscore.drop_duplicates(subset=['tagId', 'movieId'],inplace=True)
 
-# pivoting the datafram
+# pivoting the dataframe
 df_gtagscore = df_gtagscore.pivot(index = 'movieId', columns = 'tagId', values='relevance')
 
-## adding realease year and genres as columns
-
-df_movies.genres= df_movies.genres.str.split('|')
-dummies = pd.get_dummies(df_movies.genres.apply(pd.Series).stack()).sum(level=0)
-df_movies = pd.concat([df_movies, dummies], axis=1).drop('genres', axis=1)
-
-from sklearn.preprocessing import MinMaxScaler
-df_movies.drop('title', axis =1)
-
+# adding release years as columns
 df_movies = pd.read_csv('movies.csv')
 mask = df_movies['title'].str.contains('09–')
 
@@ -50,44 +40,87 @@ def condition(x):
         return np.nan
 df_movies['releaseyear'] = df_movies['title'].apply(condition).fillna(1993)
 
-scaler02 = MinMaxScaler()
-df_movies.releaseyear = scaler02.fit_transform(df_movies[['releaseyear']])
+from sklearn.preprocessing import MinMaxScaler, LabelEncoder
+df_movies =df_movies.drop('title', axis =1)
+scaler = MinMaxScaler()
+df_movies.releaseyear = scaler.fit_transform(df_movies[['releaseyear']])
 
+# adding genres as columns
+df_movies.genres= df_movies.genres.str.split('|')
+dummies = pd.get_dummies(df_movies.genres.apply(pd.Series).stack()).sum(level=0)
+df_movies = pd.concat([df_movies, dummies], axis=1).drop('genres', axis=1)
+
+# merging the tag score dataset and the new dataset with release year and genres to a new database
 df_ContBaseRec = pd.merge(df_gtagscore, df_movies, how='inner', on='movieId').set_index('movieId')
+df_ContBaseRec.columns = df_ContBaseRec.columns.astype(str)
 
-df_ContBaseRec.info()
+# Clustering
+# importing the library
 
-#Clsutering
-#importing the library
-
-from sklearn.metrics import silhouette_score
 from sklearn.cluster import KMeans
-from scipy.spatial.distance import cdist
 
-## training the Model
+# training the Model
 
 kmeans = KMeans(n_clusters=18, n_init='auto')
 kmeans.fit(df_ContBaseRec)
-labels = kmeans.labels_ # getting the movis labled with the corresponding cluster.
-#making a new df of the movies with the labels and MovieId, title and release year.
-df_labeledMovies= pd.DataFrame({'movieId': df_ContBaseRec.index, 'labels': labels})\
-                    .merge(df_movies, on='movieId').set_index('movieId')
+labels = kmeans.labels_
+df_movies = pd.read_csv('movies.csv')
+df_labeledMovies= pd.DataFrame({'movieId': df_ContBaseRec.index, 'labels': labels}).merge(df_movies, on='movieId').set_index('movieId')
 
-# recommending the nearest neighbors within the given cluster with the example "Network (1975)
+# recommending movies based on several movies
 
-from sklearn.neighbors import NearestNeighbors
+df_movies = pd.read_csv('movies.csv')
 
-#specifying the movie
-given_movie_id =df_labeledMovies[df_labeledMovies.title.str.contains(r'\bNetwork\b.{0,9}$', case=False)].labels.item()
-given_movie_cluster = df_labeledMovies.loc[given_movie_id, "labels"] # getting the cluster
-movies_in_cluster_indices = df_labeledMovies[df_labeledMovies["labels"] == given_movie_cluster].index.tolist()
-movies_in_cluster_relevance = df_ContBaseRec.loc[movies_in_cluster_indices] # Filter the relevance data based on movies in the same cluster
 
-# Train the Nearest Neighbors algorithm
-nn = NearestNeighbors(n_neighbors=6)  # 5 neighbors + the given movie itself
-nn.fit(movies_in_cluster_relevance)
-distances, indices = nn.kneighbors([df_ContBaseRec.loc[given_movie_id]]) # finding the nearest neigbors
-nearest_neighbor_ids = [movies_in_cluster_indices[i] for i in indices[0]] # Get the IDs of the nearest neighbors
-nearest_neighbor_ids.remove(given_movie_id) # Remove the given movie from the list of neighbors
+def recommendation(given_movies, number_of_recommendations, df=df_ContBaseRec, lambda_val=np.random.rand()):
+    given_movies_ids = []
+    for title, year in given_movies:
+        given_movie_id = df_movies[
+            df_movies.title.str.contains(r'\b{}\b.*\b{}\b.$'.format(title, year), case=False)].movieId.item()
+        given_movies_ids.append(given_movie_id)
 
-df_labeledMovies.loc[nearest_neighbor_ids]
+    # calculating the mean point (vector) of the given movies
+    mean_point = df.loc[given_movies_ids].mean()
+
+    # movie recommendation with cousin similarity
+    from sklearn.metrics.pairwise import cosine_similarity
+    # Get the relevance vector of the given movie
+    given_movie_vector = mean_point.values.reshape(1, -1)
+    # Calculate cosine similarity between the given movie and all other movies
+    similarity_scores = cosine_similarity(df.values, given_movie_vector)
+    # calculate the dissimilarity score dictionary
+    dissimilarity_scores = similarity_scores - 1
+
+    # distances as relevance score with nearest neighbors distances
+    import sklearn.neighbors
+    nn = sklearn.neighbors.NearestNeighbors(n_neighbors=df.shape[0])
+    nn.fit(df)
+    # getting the distances of any point in the df to mean point
+    distances, indices = nn.kneighbors(mean_point.values.reshape(1, -1))
+    # normalize the data between 0 and 1
+    distances = (distances - distances.min()) / (distances.max() - distances.min())
+    # calculate a relevance_score
+    relevance_score = (1 - distances)
+
+    # Diversification
+    score = pd.Series((relevance_score + (lambda_val * dissimilarity_scores.reshape(1, -1)))[0], name="score")
+
+    df_scored = pd.concat([df_labeledMovies.reset_index(names='movieId'), score.reset_index(drop=True)],
+                          axis=1).set_index('movieId')
+
+    # Remove the given movie from the list of recommendation
+    df_scored = df_scored.drop(given_movies_ids)
+    # deleting the movies which are not in the same clusters as the given movies
+    given_movies_clusters = df_labeledMovies.loc[given_movies_ids, "labels"].unique()
+    df_scored = df_scored[df_scored["labels"].isin(given_movies_clusters)]
+
+    # getting the movies from the labled set which shows the title and label
+    recommendations = df_scored.sort_values('score', ascending=False).head(number_of_recommendations)
+    return recommendations
+
+df_movies = pd.read_csv('movies.csv')
+
+given_movies = [['Akira', '1988'], ['Network', '1976'], ['Prisoners', '2013'], ['Incendies', '2010'],
+                ['red shoes', '1948'], ['metropolis', '1927']]
+
+print(recommendation(given_movies, 20)['title'])
