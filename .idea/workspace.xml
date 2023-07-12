@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3e2531ae-c3b8-471b-8bf8-11655c5af730" name="Changes" comment="adding Clustering and NearestNeigbor of one movie">
-      <change afterPath="$PROJECT_DIR$/model/ColdStarter.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/model/HybridRecommendationSystem.py" afterDir="false" />
+    <list default="true" id="3e2531ae-c3b8-471b-8bf8-11655c5af730" name="Changes" comment="importing the offline file">
+      <change afterPath="$PROJECT_DIR$/data_script/Clustering.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data_script/Preprocess_Content_Based.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -104,7 +104,21 @@
       <option name="project" value="LOCAL" />
       <updated>1689184011927</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="writting the lost code AGAIN">
+      <created>1689187733814</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1689187733814</updated>
+    </task>
+    <task id="LOCAL-00007" summary="importing the offline file">
+      <created>1689187804847</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1689187804847</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -135,6 +149,8 @@
     <MESSAGE value="Function to calculate and show the silhoutte score of a list of n-clusters" />
     <MESSAGE value="reordering" />
     <MESSAGE value="adding CollaborativeFilteringRec.py" />
-    <option name="LAST_COMMIT_MESSAGE" value="adding CollaborativeFilteringRec.py" />
+    <MESSAGE value="writting the lost code AGAIN" />
+    <MESSAGE value="importing the offline file" />
+    <option name="LAST_COMMIT_MESSAGE" value="importing the offline file" />
   </component>
 </project>
