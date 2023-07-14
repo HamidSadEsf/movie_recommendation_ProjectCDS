@@ -1,7 +1,7 @@
 import pandas as pd
 from ContentBasedRec import recommendation
 from CollaborativeFilteringRec import get_predictions
-from ColdStarter import get_ranking
+from ColdStarter import cold_starters
 
 
 # Hybrid recommender system
@@ -11,7 +11,7 @@ def hybrid_recommendation(user, user_movies, threshold=20):
     if num_user_movies < threshold:
         # Use content-based recommendation
         content_based_rec = recommendation(user_movies, 10)
-        coldstarter_rec = get_ranking()
+        coldstarter_rec = cold_starters()
         # Calculate the weight for content-based recommendation
         content_based_weight = (num_user_movies / threshold)
         hybrid_rec_score = (content_based_rec['score'] * content_based_weight) + \

@@ -10,4 +10,4 @@ def get_labeledMovies():
     labels = kmeans.labels_
     df_movies = pd.read_csv('movies.csv')
     df_labeledMovies= pd.DataFrame({'movieId': df_ContBaseRec.index, 'labels': labels}).merge(df_movies, on='movieId').set_index('movieId')
-    return df_labeledMovies
+    return df_labeledMovies, df_ContBaseRec
