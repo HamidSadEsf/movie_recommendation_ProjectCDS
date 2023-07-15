@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3e2531ae-c3b8-471b-8bf8-11655c5af730" name="Changes" comment="Function to calculate and show the silhouette score of a list of n-clusters" />
+    <list default="true" id="3e2531ae-c3b8-471b-8bf8-11655c5af730" name="Changes" comment="importing the offline file">
+      <change afterPath="$PROJECT_DIR$/data_script/Clustering.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data_script/Preprocess_Content_Based.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -17,8 +21,25 @@
       </list>
     </option>
   </component>
+  <component name="Git.Merge.Settings">
+    <option name="BRANCH" value="origin/main" />
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">
+    <option name="selectedUrlAndAccountId">
+      <UrlAndAccount>
+        <option name="accountId" value="49e03955-4d7f-4731-839f-86d73427cf2d" />
+        <option name="url" value="https://github.com/HamidSadEsf/movie_recommendation_ProjectCDS.git" />
+      </UrlAndAccount>
+    </option>
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -34,6 +55,11 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\HamidEsfahlani\Documents\GitHub\movie_recommendation_ProjectCDS\model" />
+    </key>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -57,12 +83,74 @@
       <option name="project" value="LOCAL" />
       <updated>1685118718589</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="reordering">
+      <created>1689183853893</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1689183853893</updated>
+    </task>
+    <task id="LOCAL-00004" summary="reordering">
+      <created>1689183953510</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1689183953510</updated>
+    </task>
+    <task id="LOCAL-00005" summary="adding CollaborativeFilteringRec.py">
+      <created>1689184011927</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1689184011927</updated>
+    </task>
+    <task id="LOCAL-00006" summary="writting the lost code AGAIN">
+      <created>1689187733814</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1689187733814</updated>
+    </task>
+    <task id="LOCAL-00007" summary="importing the offline file">
+      <created>1689187804847</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1689187804847</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="Hamid02" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Just a smal correction in the line 53: clustersss -&gt; clusters" />
     <MESSAGE value="Function to calculate and show the silhoutte score of a list of n-clusters" />
-    <option name="LAST_COMMIT_MESSAGE" value="Function to calculate and show the silhoutte score of a list of n-clusters" />
+    <MESSAGE value="reordering" />
+    <MESSAGE value="adding CollaborativeFilteringRec.py" />
+    <MESSAGE value="writting the lost code AGAIN" />
+    <MESSAGE value="importing the offline file" />
+    <option name="LAST_COMMIT_MESSAGE" value="importing the offline file" />
   </component>
 </project>
