@@ -1,4 +1,4 @@
-# Import modules
+ # Import modules
 
 import pandas as pd
 import numpy as np
@@ -35,7 +35,7 @@ def closest_users_mean_ratings(mat, movies):
     return df
 
 
-def get_predictions(user_id, util_mat, n_predictions):
+def get_predictions(user_id, util_mat):
     """
     Return predictions of the collaborative filtering system, where ``n_predictions`` is the desired number of predictions
     """
@@ -43,7 +43,7 @@ def get_predictions(user_id, util_mat, n_predictions):
     user_index = np.where(util_mat.index == user_id)[0][0]
     
     # Nearest Neighbors
-    number_of_closest_users = 150
+    number_of_closest_users = 50
     nn = neighbors.NearestNeighbors(metric='cosine', algorithm='brute', n_neighbors=number_of_closest_users)
     nn.fit(csr_util_mat) 
 
