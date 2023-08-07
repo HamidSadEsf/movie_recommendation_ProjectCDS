@@ -2,12 +2,10 @@ import pandas as pd
 from sklearn.cluster import KMeans
 
 # training the Model
-def get_labeledMovies():
-    from Preprocess_Content_Based import get_df
-    kmeans = KMeans(n_clusters=18, n_init='auto')
-    df_ContBaseRec = get_df()
-    kmeans.fit(df_ContBaseRec)
+def get_labeledMovies(df, clusters=5):
+    kmeans = KMeans(n_clusters=clusters, n_init='auto')
+    kmeans.fit(df)
     labels = kmeans.labels_
-    df_movies = pd.read_csv('movies.csv')
-    df_labeledMovies= pd.DataFrame({'movieId': df_ContBaseRec.index, 'labels': labels}).merge(df_movies, on='movieId').set_index('movieId')
-    return df_labeledMovies, df_ContBaseRec
+    df_movies = pd.read_csv('data/movies.csv')
+    df_labeledMovies= pd.DataFrame({'movieId': df.index, 'labels': labels}).merge(df_movies, on='movieId').set_index('movieId')
+    return df_labeledMovies
