@@ -1,23 +1,7 @@
 import numpy as np
 import pandas as pd
 
-
-def get_df():
-    df_gscore = pd.read_csv('data/genome-scores.csv')
-    df_gtags = pd.read_csv('data/genome-tags.csv')
-
-    # Creating the genome dataset
-
-    df_gtagscore = df_gtags.merge(df_gscore, how='right', on='tagId').drop('tag', axis=1)
-    df_gtagscore.drop_duplicates(subset=['tagId', 'movieId'], inplace=True)
-
-    # pivoting the dataframe
-    df_gtagscore = df_gtagscore.pivot(index='movieId', columns='tagId', values='relevance')
-
-    # adding release years as columns
-    df_movies = pd.read_csv('data/movies.csv')
-   
-    def condition(x):
+def conditions(x):
         if x[-2:] == 'a)':
             return np.nan
         elif x[-2:] == 'l)':
@@ -35,7 +19,24 @@ def get_df():
         else:
             return np.nan
 
-    df_movies['releaseyear'] = df_movies['title'].apply(condition).fillna(1993)
+
+def get_df():
+    df_gscore = pd.read_csv('data/genome-scores.csv')
+    df_gtags = pd.read_csv('data/genome-tags.csv')
+
+    # Creating the genome dataset
+
+    df_gtagscore = df_gtags.merge(df_gscore, how='right', on='tagId').drop('tag', axis=1)
+    df_gtagscore.drop_duplicates(subset=['tagId', 'movieId'], inplace=True)
+
+    # pivoting the dataframe
+    df_gtagscore = df_gtagscore.pivot(index='movieId', columns='tagId', values='relevance')
+
+    # adding release years as columns
+    df_movies = pd.read_csv('data/movies.csv')
+   
+    
+    df_movies['releaseyear'] = df_movies['title'].apply(conditions).fillna(1993)
     
     from sklearn.preprocessing import MinMaxScaler, LabelEncoder
     scaler = MinMaxScaler()

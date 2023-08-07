@@ -23,15 +23,14 @@ def hybrid_recommendation(userId, user_movies, threshold=20):
         #getting the mean of the actual rating
         actual_ratings = user_movies['rating'].mean()
         # getting the mean of the predicted rating
-        predicted_ratings = collaborative_filtering_rec[
-            (collaborative_filtering_rec.moviedId == user_movies['movie_id'])['score']].mean()
+        predicted_ratings = collaborative_filtering_rec[(collaborative_filtering_rec.moviedId == user_movies['movie_id'])['score']].mean()
         #calculating the weight by taking the difference between actual and predicted ratings
         collaborative_filtering_weight = actual_ratings - predicted_ratings
         # normalizing the weight
-        collaborative_filtering_weight = (collaborative_filtering_weight - collaborative_filtering_weight.min()) / (
-                    collaborative_filtering_weight.max() - collaborative_filtering_weight.min())
+        collaborative_filtering_weight = (collaborative_filtering_weight - collaborative_filtering_weight.min()) / 
+                                         (collaborative_filtering_weight.max() - collaborative_filtering_weight.min())
         # Apply weights to recommendations
-        hybrid_rec_score = (content_based_rec['score'] * collaborative_filtering_weight) + \
+        hybrid_rec_score = (content_based_rec['score'] * 1- collaborative_filtering_weight) + \
                            (collaborative_filtering_rec['score'] * collaborative_filtering_weight)
 
     hybrid_rec = pd.DataFrame({'movieId': content_based_rec['movieId'], 'hybrid_score': hybrid_rec_score})
