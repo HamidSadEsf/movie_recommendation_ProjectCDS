@@ -48,7 +48,6 @@ def get_predictions(user_id, util_mat):
     nn.fit(csr_util_mat) 
 
     # Find the nearest neighbors for the target user (e.g., User1)
-
     mask = np.zeros(csr_util_mat.shape[0], dtype=bool)
     mask[user_index] = True
     target_user_row = csr_util_mat[mask]
