@@ -1,17 +1,17 @@
 import pandas as pd
 def search_movieId(given_movies):
     """
-    get the Ids of movies for a list of movies with their title and release year
+    get the Ids of movies for a list of movies with their title and release year.
     
     Parameters
     ----------
-    given_movies:  list of lists of two strings
+    given_movies:  list of lists of two strings.
         [['movie Title_1','release year_2'],...,['movie Title_n','release year_n']]]
     
     Returns
     ----------
     given_movies_ids: list of integers
-        A list of the movieIds of the given movies in the same order
+        A list of the movieIds of the given movies in the same order.
         [movieId_1,...,movieId_n]            
     """
     df_movies = pd.read_csv('data/movies.csv')

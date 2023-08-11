@@ -4,26 +4,26 @@ from model.CollaborativeFilteringRec import get_predictions
 from model.ColdStarter import cold_starters
 
 def hybrid_recommendation(userId, threshold=20):
-     """
+    """
     Making a hybrid recommendation list from the three recommendation Systems:
-    Cold Starte (CS), Content Based (CB), Colaborative Filtering (CF)
+    Cold starter (CS), Content-Based (CB), Collaborative Filtering (CF)
     Case 1:
-        If user rated less movies as indicated in threshold, it returns a
+        If the user rated fewer movies as indicated in the threshold, it returns a
         hybrid recommendation of CB and CS.
-        The weighting of depends on the amount of movies rated by the user.
+        The weighting depends on the number of movies rated by the user.
         The more movies the user rates, the more weight is given to the CB.
-        if amount of movies rated is zero, then it return only CS
+        if the amount of movies rated is zero, then it returns only CS
     Case 2:
-        If user rated more movies as indicated in threshold, it returns a
+        If the user rated more movies as indicated in the threshold, it returns a
         hybrid recommendation of CB and CF.
-        The weighting of depends on ....
+        The weighting depends on ....
     
     Parameters
     ----------
     UserId:  integer
         The Id of the user to whom we want to recommend movies. 
     threshold: integer
-        The amount of movies rated by user as threshold for Case 1 and Case 2
+        The number of movies rated by the user as the threshold for Case 1 and Case 2
     
     Returns
     ----------
@@ -44,8 +44,8 @@ def hybrid_recommendation(userId, threshold=20):
                 the calculated hybrid score between 0-1
         
     """
-    # geting the movies already rated by user
-    user_movies = = pd.read_csv('data/ratings.csv')['movieId']
+    # Getting the movies already rated by the user
+    user_movies = pd.read_csv('data/ratings.csv')['movieId']
     num_user_movies = len(user_movies)
     hybrid_rec = pd.DataFrame()
     
@@ -63,13 +63,13 @@ def hybrid_recommendation(userId, threshold=20):
     if num_user_movies >= threshold:
         # Calculate the weight for collaborative filtering recommendation
         collaborative_filtering_rec = get_predictions(userId)
-        #getting the mean of the actual rating
+        # Getting the mean of the actual rating
         actual_ratings = user_movies['rating'].mean()
-        # getting the mean of the predicted rating
+        # Getting the mean of the predicted rating
         predicted_ratings = collaborative_filtering_rec[(collaborative_filtering_rec.moviedId == user_movies['movie_id'])['score']].mean()
         #calculating the weight by taking the difference between actual and predicted ratings
         collaborative_filtering_weight = actual_ratings - predicted_ratings
-        # normalizing the weight
+        # Normalizing the weight
         collaborative_filtering_weight = (collaborative_filtering_weight - collaborative_filtering_weight.min()) / (collaborative_filtering_weight.max() - collaborative_filtering_weight.min())
         # Apply weights to recommendations
         hybrid_rec_score = (content_based_rec['score'] * 1- collaborative_filtering_weight) + \

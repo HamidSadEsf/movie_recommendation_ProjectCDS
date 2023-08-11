@@ -4,7 +4,7 @@ import pandas as pd
 def get_releaseyear(X):
     
     """
-    Get the realease year from the titles column of the MovieLense movies.csv
+    Get the release year from the titles column of the Movielens movies.csv
     
     Parameters
     ----------
@@ -17,7 +17,7 @@ def get_releaseyear(X):
         
     """
     
-    # Conditions to extract the release year string from title, depending how they string ends. 
+    # Conditions to extract the release year string from the title, depending on how the string ends. 
     def conditions(x):
         if x[-2:] == 'a)':
             return np.nan
@@ -36,7 +36,7 @@ def get_releaseyear(X):
         else:
             return np.nan
     # Applying the conditions to the title column, while filling the only NaN with 1993.
-    # The realese years for this particular movie was looked up in internet
+    # The release years for this particular movie were looked up on the internet
     
     return X.apply(conditions).fillna(1993)
 
@@ -44,11 +44,11 @@ def get_releaseyear(X):
 def get_df():
     
     """
-    Preprocessing the dataset for the content-Vased recommendation system.
-    It combines the genome-scores.csv and genome-tags.csv to a DataFrame.
+    Preprocessing the dataset for the content-based recommendation system.
+    It combines the genome-scores.csv and genome-tags.csv into a data frame.
     The rows represent the Movies, thus the index corresponds to the Movie Ids. 
-    Columns represent the tags, thus the column names corresponds to the Tag Ids.
-    The Value in the cells are the relevance of the Tags for the respective movies
+    Columns represent the tags, thus the column names correspond to the Tag Ids.
+    The Value in the cells is the relevance of the Tags for the respective movies
     
     Parameters
     ----------
@@ -57,7 +57,7 @@ def get_df():
     Returns
     ----------
     pandas.DataFrame
-        The preprocessed dataset to be used in the content based recommendation system
+        The preprocessed dataset to be used in the content-based recommendation system
         Index: movieId
         Columns: tagIds
         each value in the cells represents the relevance of the tag for the corresponding movie 
@@ -72,13 +72,13 @@ def get_df():
     df_gtagscore = df_gtags.merge(df_gscore, how='right', on='tagId').drop('tag', axis=1)
     df_gtagscore.drop_duplicates(subset=['tagId', 'movieId'], inplace=True)
 
-    # Pivoting the dataframe
+    # Pivoting the data frame
     df_gtagscore = df_gtagscore.pivot(index='movieId', columns='tagId', values='relevance')
 
     # Adding release years as columns
     df_movies = pd.read_csv('data/movies.csv')
    
-    # Getting and attaching the realeaseyear as a new column
+    # Getting and attaching the release year as a new column
     df_movies['releaseyear'] = get_releaseyear(df_movies['title'])
     
     # Normalize the release year values
