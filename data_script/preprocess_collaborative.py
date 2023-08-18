@@ -37,9 +37,6 @@ print("Creating the pivot matrix...")
 pivot = final_df.pivot_table(index="userId", columns="movieId", values="rating")
 pivot_na = pivot.copy()
 
-#Create non-sparce dataset
-csr_data = csr_matrix(pivot.values)
-
 # Lets save the pivot matrix with NA for further uses
 pivot_na.to_csv('./data/processed/pivot_na.csv', index=True, header="userId")
 
@@ -51,9 +48,13 @@ print("The resulting sparcity of the matrix is:", sparsity)
 #pivot.fillna(0,inplace=True)
 #pivot.to_csv('matrices/pivot.csv', index=True, header="userId")
 
+#Create non-sparse dataset
+#csr_data = csr_matrix(pivot.values)
+#save_npz("matrices/sparse_ratings.npz", csr_data)
+
 # preparation of the final rating dataframe
 print("Preparing the final rating matrix...")
 final_ratings = final_df[["movieId", "userId", "rating"]].reset_index(drop=True)
-final_ratings.to_csv('./data/processed/final_ratings.csv', index=True)
+final_ratings.to_csv('./data/processed/final_ratings.csv', index=False)
       
 print("Data preprocesssing for collaborative filtering modeling is completed!")
