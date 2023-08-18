@@ -43,7 +43,7 @@ def get_predictions(user_id, util_mat, n_predictions):
     user_index = np.where(util_mat.index == user_id)[0][0]
     
     # Nearest Neighbors
-    number_of_closest_users = 150
+    number_of_closest_users = 25
     nn = neighbors.NearestNeighbors(metric='cosine', algorithm='brute', n_neighbors=number_of_closest_users)
     nn.fit(csr_util_mat) 
 
