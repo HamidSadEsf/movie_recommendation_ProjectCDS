@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import time
+import random
 from scipy.sparse import csr_matrix, save_npz
 
 # import datasets:
@@ -20,17 +21,30 @@ final_df = mov_rat[mov_rat["movieId"].isin(tagged_movies)]
 #Reducing the dataframe by removing unpopular movies and inactive users
 #Shringking movies
 mdf = pd.DataFrame(final_df['movieId'].value_counts())
-rare_movies = mdf[mdf['movieId'] <= 500].index
+rare_movies = mdf[mdf['movieId'] <= 2000].index
 final_df = final_df[~final_df["movieId"].isin(rare_movies)]
 print('Out of total of ', mdf.shape[0] , ' movies, ', rare_movies.shape[0], ' are considered rare and will be removed.')
 print('The final number of movies is ', final_df["movieId"].nunique())
 
 #Shringking users
 udf = pd.DataFrame(final_df['userId'].value_counts())
-lazy_users = udf[udf['userId'] <= 500].index
+lazy_users = udf[udf['userId'] <= 1000].index
 final_df = final_df[~final_df["userId"].isin(lazy_users)]
 print('Out of total of ', udf.shape[0] , ' users, ', lazy_users.shape[0], ' are considered lazy and will be removed.')
 print('The final number of users is ', final_df["userId"].nunique())
+
+#Add Sviatlana's and Hamid's ratings
+print("Adding Sviatlana's and Hamid's ratings...")
+def add_user_to_ratings(new_user_ratings, name, ratings):
+    new_user_id = random.choice(list(set([x for x in range(ratings.userId.min(),ratings.userId.max())]) - set(ratings.userId.values)))
+    df = new_user_ratings[["movie_id", "rating"]].rename(columns={"movie_id": "movieId"})
+    df["userId"] = new_user_id
+    ratings = pd.concat([df, ratings])
+    print(name, "'s user id is", new_user_id)
+    return ratings, new_user_id
+
+final_df, sveta_user_id = add_user_to_ratings(sveta_ratings, "Sveta", final_df)
+final_df, hamid_user_id = add_user_to_ratings(hamid_ratings,"Hamid", final_df)
 
 # Create the user->movie sparse rating matrix.
 print("Creating the pivot matrix...")
