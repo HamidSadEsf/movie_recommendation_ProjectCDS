@@ -20,7 +20,7 @@ def get_top_n(predictions, n = 0):
     return top_n
 
 class cf_model():
-    def __init__(self, model, trainset, testset, data, n, pred_test=None):
+    def __init__(self, model, trainset, testset, data, n=20, pred_test=None):
         self.model = model
         self.trainset = trainset
         self.testset = testset
@@ -33,6 +33,7 @@ class cf_model():
         self.all_predictions = None
         self.n = n 
         self.mean_cv_rmse = None
+        self.similarity_matrix = None
 
     def fit_and_predict(self):
         if (self.pred_test is None):
@@ -77,6 +78,9 @@ class cf_model():
         self.mean_cv_rmse = cv_result
         print('Mean CV RMSE is ' + str(cv_result))
         return cv_result
+    
+    def compute_similarities(self):
+        return self.model.compute_similarities()
 
     def recommend(self, user_id):
         #print('Recommending top ' + str(self.n)+ ' products for userid : ' + str(user_id) + ' ...')

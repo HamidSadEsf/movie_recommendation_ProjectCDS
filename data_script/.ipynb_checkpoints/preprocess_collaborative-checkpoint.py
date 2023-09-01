@@ -26,11 +26,15 @@ final_df = mov_rat[mov_rat["movieId"].isin(tagged_movies)]
 
 #Shringking users
 udf = pd.DataFrame(final_df['userId'].value_counts())
-lazy_users = udf[udf['userId'] <= 2000].index
+lazy_users = udf[udf['userId'] <= 60].index
 final_df = final_df[~final_df["userId"].isin(lazy_users)]
 print('Out of total of ', udf.shape[0] , ' users, ', lazy_users.shape[0], ' are considered lazy and will be removed.')
 print('The final number of users is ', final_df["userId"].nunique())
 
+#Randomly choose N users 
+selection_of_users = random.sample(final_df["userId"].value_counts().index.to_list(), 400)
+final_df = final_df[final_df["userId"].isin(selection_of_users)]
+print('Randomly choosing', len(selection_of_users), 'users...')
 
 def add_user_to_ratings(new_user_ratings, name, ratings):
     new_user_id = random.choice(list(set([x for x in range(ratings.userId.min(),ratings.userId.max())]) - set(ratings.userId.values)))
@@ -56,7 +60,7 @@ print('Now, the final number of users is ', final_df["userId"].nunique())
 #Shringking movies
 print("Filtering movies...")
 mdf = pd.DataFrame(final_df['movieId'].value_counts())
-rare_movies = mdf[mdf['movieId'] <= 100].index
+rare_movies = mdf[mdf['movieId'] <= 10].index
 final_df = final_df[~final_df["movieId"].isin(rare_movies)]
 print('Out of total of ', mdf.shape[0] , ' movies, ', rare_movies.shape[0], ' are considered rare and will be removed.')
 print('The final number of movies is ', final_df.groupby(by="movieId").count().shape[0])
