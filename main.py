@@ -1,45 +1,28 @@
-# Preprocess and save data for collaborative filtering modelling
-# Uncomment only when you want to (re)build your ratings matrix from scratch
+# preprocess and save data for collaborative filtering modelling
+#from data_script.preprocess_collaborative import hamid_user_id, sveta_user_id, anti_hamid_user_id, anti_sveta_user_id
 
-#from data_script.preprocess_collaborative import hamid_user_id, sveta_user_id
+hamid_user_id, sveta_user_id, anti_hamid_user_id, anti_sveta_user_id = (88764,71285,5737,58746)
 
-sveta_user_id = 78856
-hamid_user_id = 70937
+# training and saving CF models
+from model.CollaborativeFilteringRec import train_cf_models, CollaborativeFilteringRecommender, get_collaborative_filtering_weight
+#trainset, testset, data, algo, algo_predictions, knn, knn_predictions = train_cf_models()
 
-import numpy as np
-import pandas as pd
-from collections import defaultdict
+# Load the trained models
+#from surprise import dump
+#cf_predictions, cf_recommender_algo = dump.load('./model/trained_models/CF_Model')
+#CFR = CF(cf_predictions, cf_recommender_algo)
+#CFR.fit_and_predict() # performs all the computation
+#CFR.cross_validate()
 
-from surprise import Dataset
-from surprise import Reader
-from surprise import BaselineOnly, Dataset, Reader, SVD, KNNBasic, KNNBaseline, KNNWithMeans
+# Get top n recommendations for a user
+#recommendations = CFR.recommend(sveta_user_id, n=10)
+#print(recommendations.head(20))
 
-from surprise.model_selection import GridSearchCV
-from surprise.model_selection import train_test_split
+# Get CF weight coefficients for the hybrid model
+#print(get_collaborative_filtering_weight(anti_sveta_user_id))
 
-from model.CollaborativeFilteringRec import cf_model
-
-#Get the final ratings matrix
-print("Getting the ratings matrix...")
-ratings = pd.read_csv('./data/processed/final_ratings.csv')
-movie_df = pd.read_csv('./data/external/movies.csv')
-
-#Prepare data in the Surprise's format
-print("Preparing data in the Suprise format...")
-reader = Reader(rating_scale=(0.5, 5))
-data = Dataset.load_from_df(ratings[["userId", "movieId", "rating"]], reader)
-
-#trainset, testset = train_test_split(data, test_size=.25, random_state=42)
-
-svd = SVD()
-
-trainset = data.build_full_trainset()
-testset = trainset.build_anti_testset()
-
-svd_model = cf_model(svd, trainset, testset, data)
-svd_model.fit_and_predict()
-#svd_model.cross_validate()
+# Test hybrid recommendations
+from model.HybridRecommendationSystem import hybrid_recommendation
+hybrid_recommendation(sveta_user_id)
 
 
-print(svd_model.recommend(sveta_user_id, 20).merge(movie_df, on='movieId', how='inner'))
-print(svd_model.recommend(hamid_user_id, 20).merge(movie_df, on='movieId', how='inner'))
