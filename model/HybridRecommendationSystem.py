@@ -1,6 +1,6 @@
 import pandas as pd
 from model.ContentBasedRec import recommendation
-from model.CollaborativeFilteringRec import get_predictions
+from model.CollaborativeFilteringRec import CollaborativeFilteringRecommender as CFR, get_collaborative_filtering_weight
 from model.ColdStarter import cold_starters
 
 def hybrid_recommendation(userId, threshold=20):
@@ -16,7 +16,7 @@ def hybrid_recommendation(userId, threshold=20):
     Case 2:
         If the user rated more movies as indicated in the threshold, it returns a
         hybrid recommendation of CB and CF.
-        The weighting depends on ....
+        The weighting depends on the number of the 'similar" users as determined from the similarity matrix.
     
     Parameters
     ----------
@@ -53,29 +53,30 @@ def hybrid_recommendation(userId, threshold=20):
     if num_user_movies < threshold:
         # Use content-based recommendation
         content_based_rec = recommendation(user_movies, 10, 18)
+        
         coldstarter_rec = cold_starters()
         # Calculate the weight for content-based recommendation
+        
         content_based_weight = (num_user_movies / threshold)
         hybrid_rec_score = (content_based_rec['score'] * content_based_weight) + \
                            (coldstarter_rec['score'] * 1 - content_based_weight)
 
     # Case 2
     if num_user_movies >= threshold:
-        # Calculate the weight for collaborative filtering recommendation
-        collaborative_filtering_rec = get_predictions(userId)
-        # Getting the mean of the actual rating
-        actual_ratings = user_movies['rating'].mean()
-        # Getting the mean of the predicted rating
-        predicted_ratings = collaborative_filtering_rec[(collaborative_filtering_rec.moviedId == user_movies['movie_id'])['score']].mean()
-        #calculating the weight by taking the difference between actual and predicted ratings
-        collaborative_filtering_weight = actual_ratings - predicted_ratings
-        # Normalizing the weight
-        collaborative_filtering_weight = (collaborative_filtering_weight - collaborative_filtering_weight.min()) / (collaborative_filtering_weight.max() - collaborative_filtering_weight.min())
+        # Use content-based recommendation
+        content_based_rec = recommendation(user_movies, 10, 18)
+        
+        # Calculate the cf prediction
+        collaborative_filtering_rec = CFR.recommend(userId, 10)
+        
+        #Calculate the weight for collaborative filtering recommendation
+        collaborative_filtering_weight = get_collaborative_filtering_weight(userId)
+                                         
         # Apply weights to recommendations
-        hybrid_rec_score = (content_based_rec['score'] * 1- collaborative_filtering_weight) + \
+        hybrid_rec_score = (content_based_rec['score'] * (1 - collaborative_filtering_weight)) + \
                            (collaborative_filtering_rec['score'] * collaborative_filtering_weight)
 
-    hybrid_rec = pd.DataFrame({'movieId': content_based_rec['movieId'], 'title': content_based_rec['title'], 'genre': content_based_rec['genres'], hybrid_score': hybrid_rec_score'})
+    hybrid_rec = pd.DataFrame({'movieId': content_based_rec['movieId'], 'title': content_based_rec['title'], 'genre': content_based_rec['genres'], hybrid_score: 'hybrid_rec_score'})
     hybrid_rec.sort_values(by='hybrid_score', ascending=False, inplace=True)
 
     return hybrid_rec

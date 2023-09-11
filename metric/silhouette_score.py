@@ -22,12 +22,13 @@ class SilhouetteAnalyzer:
         self.s_scores = list()
         self.clusters = list()
 
-    def run(self, start=1, stop=10, step=1, max_iterations=300):
+    def run(self, start=2, stop=10, step=1, max_iterations=300):
         # defining a list of n_clusters with a start, stop and the steps, just like numpy.arrange
         self.clusters = np.arange(start, stop, step)
         # Initiating and training a Kmeans model for each value of n_cluster in the list above
         for i in self.clusters:
-            kmeans = KMeans(n_clusters=i, init='k-means++', max_iter=max_iterations, n_init='auto', random_state=0)
+            #kmeans = KMeans(n_clusters=i, init='k-means++', max_iter=max_iterations, n_init='auto', random_state=0)
+            kmeans = KMeans(init='random', n_clusters=i, algorithm='lloyd', n_init='auto')
             kmeans.fit(self.matrix)
             self.s_scores.append(silhouette_score(self.matrix, kmeans.labels_, metric='sqeuclidean'))
 

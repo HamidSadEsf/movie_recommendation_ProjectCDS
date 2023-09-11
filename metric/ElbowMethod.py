@@ -28,7 +28,7 @@ class elbowMethod():
         self.differences = list()
         self.clusters = list()
 
-    def run(self, Start=1, Stop=10, Step=1, max_iterations=300):
+    def run(self, Start=2, Stop=10, Step=1, max_iterations=300):
         # defining a list of n_clusters with a start, stop and the steps, just like numpy.arange
         self.clusters = np.arange(Start, Stop, Step)
         # Initiating and training a Kmeans model for each value of n_cluster in the list above
