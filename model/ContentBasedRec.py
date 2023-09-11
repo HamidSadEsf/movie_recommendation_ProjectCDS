@@ -9,14 +9,16 @@ def recommendation(given_movies, number_of_recommendations, num_clusters, lambda
     Our dataset is based on the gnome-scores.csv dataset of MovieLens:
     
         Step 1: Preprocessing the gnome-scores.csv to a dataset 
-        Step 2: applying a preclustering to the dataset and get the labels for each movie. 
+        Step 2: Apply a pre-clustering to the dataset and get the labels for each movie. 
         Step 3: Calculate the mean vector of the given movies 
-        Step 4: Rank the movies by their cousine similarity to the mean point with sklearn.metrics.pairwise.cosine_similarity
+        Step 4: Rank the movies by their cosine similarity to the mean point with sklearn.metrics.pairwise.cosine_similarity
                 The similarity score is calculated upon the relevance of the tags (see: data_script/Preprocess_Content_Based)
         Step 5: Calculate the distances of the movies to the mean vector with sklearn.neighbors.
-        Step 6: Diversify the ranking of step 4 by substracting the weighted (lambda) distances
+        Step 6: Diversify the ranking of step 4 by subtracting the weighted (lambda) distances
         Step 7: removing the given movies and movies which are not in the same clusters as the given movies
-        Step 8: Returning the desired number of top ranked movies 
+        Step 8: Returning the desired number of top-ranked movies 
+    
+    In case the number of recommendations is set to zero, it returns the whole dataframe with calculated score for every movie
     
     Parameters
     ----------
@@ -29,14 +31,15 @@ def recommendation(given_movies, number_of_recommendations, num_clusters, lambda
     number_of_recommendations: Integer
         Number of desired recommendation
     num_clusters: Integer
-        number of clusters for preclustering
+        number of clusters for pre-clustering
     lambda_val: Float between 0-1
         The weight for diversification. (Default: Random value between 0-1 )
 
     Returns
     ----------
     pandas.Dataframe
-        The list of recommended movies and their score.
+        The top rows of a sorted data frame of recommended movies, sorted by their score. The number of rows is specified by number_of_recommendations
+        If the number of recommendations is set to zero, then an unsorted and uncut data frame is returned.
         Index: movieId
         Columns:
             labels:
@@ -58,20 +61,20 @@ def recommendation(given_movies, number_of_recommendations, num_clusters, lambda
     from data_script.Preprocess_Content_Based import get_df
     df = get_df()
     
-    # Clustering the data and getting the labled movies dataset
+    # Clustering the data and getting the labeled movies dataset
     from data_script.Clustering import get_labeledMovies
     df_labeled = get_labeledMovies(df, num_clusters)
     
     
     ## Checking if the given movies already contain the Ids. if not get the Id
     
-    # Checking if given_movies is an item of class list
+    # Checking if given_movies is an item of the class list
     if isinstance(given_movies, list):
         # Checking if given_movies is a list of lists
         if all(isinstance(item, list) for item in given_movies):
         # Checking if it fits the [['movie Title_1','release year_1'],...,['movie Title_n','release year_n']] format.
             if all(len(item) == 2 and all(isinstance(sub_item, str) for sub_item in item) for item in given_movies):
-                # Convert the movies lists to list of integers cotnaining only Movie_Ids
+                # Convert the movie lists to a list of integers containing only Movie_Ids
                 from features.search_movieId import search_movieId
                 given_movies_ids = search_movieId(given_movies)
             else: 
@@ -91,7 +94,7 @@ def recommendation(given_movies, number_of_recommendations, num_clusters, lambda
     mean_point = df.loc[given_movies_ids].mean()
 
 
-    ## movie recommendation with cousin similarity
+    ## Movie recommendation with cousin similarity
     
     from sklearn.metrics.pairwise import cosine_similarity
     # Get the relevance vector of the given movie
@@ -100,7 +103,7 @@ def recommendation(given_movies, number_of_recommendations, num_clusters, lambda
     similarity_scores = cosine_similarity(df.values, given_movie_vector)
     
 
-    ## Calculate Distances of mean vector to the nearest neighbors
+    ## Calculate Distances of the mean vector to the nearest neighbors
     
     # Import and fit the model
     import sklearn.neighbors
@@ -113,21 +116,25 @@ def recommendation(given_movies, number_of_recommendations, num_clusters, lambda
     # Sorting the distance according to the original index of the df
     distances = distances[0][np.argsort(indices[0])]
     
-    # Diversificaton
+    # Diversification
     score = pd.Series((similarity_scores.reshape(1, -1) - (lambda_val/4 * distances))[0], name="score")
 
-    # Concatinate scores to the df
+    # Concatenate scores to the df
     df_scored = pd.concat([df_labeled.reset_index(names='movieId'), score.reset_index(drop=True)],
                           axis=1).set_index('movieId')
 
-    # Remove given movie from the list of recommendation
+    # Remove given movies from the list of recommendation
     df_scored = df_scored.drop(given_movies_ids)
-    # Removing movies which are not in the same clusters as the given movies
+    # Removing movies that are not in the same clusters as the given movies
     given_movies_clusters = df_labeled.loc[given_movies_ids, "labels"].unique()
     df_scored = df_scored[df_scored["labels"].isin(given_movies_clusters)]
-
-    # getting the movies from the labled set which shows the title and label
-    recommendations = df_scored.sort_values('score', ascending=False).head(number_of_recommendations)
-    
-    return recommendations
+    #if the number of recommendation is set to zero, we get the score data frame. 
+    if number_of_recommendations == 0:
+        return df_scored
+    #otherwise we get the ranking
+    else:
+        # getting the movies from the labeled set which shows the title and label
+        recommendations = df_scored.sort_values('score', ascending=False).head(number_of_recommendations)
+        
+        return recommendations
 
