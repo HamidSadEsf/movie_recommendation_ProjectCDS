@@ -50,14 +50,14 @@ def train_CF_Model(trainset, testset, data):
     print('Mean CV RMSE is ' + str(cv_result))
     # save model and its predictions to the disk
     dump.dump('model/trained_models/CF_Model',algo=algo,predictions=algo_predictions)
-    return algo_predictions; algo
+    return algo_predictions, algo
     
 
 #train and save the models
 def train_cf_models():
     #prepare data
     trainset, testset, data = prepare_data()
-    cf_predictions, cf_algo = train_CF_Model( trainset, testset, data)
+    cf_predictions, cf_algo = train_CF_Model(trainset, testset, data)
     knn_predictions, knn = train_KNN_CFWeights(trainset, testset, data)
     print("Training is done!")
     return trainset, testset, data, cf_algo, cf_predictions, knn, knn_predictions    
