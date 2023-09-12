@@ -37,7 +37,10 @@ def get_labeledMovies(df, clusters=5):
     labels = kmeans.labels_
     
     # merging with movies dataset to get titles and genres
-    df_movies = pd.read_csv('data/movies.csv')
+    df_movies = pd.read_csv('data/external/movies.csv')
     df_labeledMovies= pd.DataFrame({'movieId': df.index, 'labels': labels}).merge(df_movies, on='movieId').set_index('movieId')
+    
+    # Save the final dataset to disk
+    df_labeledMovies.to_csv('./data/processed/df_labeledMovies.csv', index=False)
     
     return df_labeledMovies

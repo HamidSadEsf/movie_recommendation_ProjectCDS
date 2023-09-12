@@ -2,7 +2,13 @@ import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
 
-def recommendation(given_movies, number_of_recommendations, num_clusters, lambda_val=np.random.rand()):
+def get_user_movies_by_userid(userId):
+    ratings = pd.read_csv('data/processed/final_ratings.csv')
+    movies = ratings[ratings.userId == userId].movieId.values.tolist()
+    return movies
+    
+
+def recommendation(userId, number_of_recommendations, lambda_val=np.random.rand()):
     
     """
     Making a recommendation by content-based Filtering:
@@ -53,15 +59,16 @@ def recommendation(given_movies, number_of_recommendations, num_clusters, lambda
                 The calculated score between 0-1
         
     """
+    given_movies = get_user_movies_by_userid(userId)
     
     # Get the database
-    from data_script.Preprocess_Content_Based import get_df
-    df = get_df()
+    #from data_script.Preprocess_Content_Based import get_df
+    df = pd.read_csv('./data/processed/df_ContBaseRec.csv')
     
     # Clustering the data and getting the labled movies dataset
-    from data_script.Clustering import get_labeledMovies
-    df_labeled = get_labeledMovies(df, num_clusters)
-    
+    #from data_script.Clustering import get_labeledMovies
+    #df_labeled = get_labeledMovies(df, num_clusters)
+    df_labeled = pd.read_csv('./data/processed/df_labeledMovies.csv')
     
     ## Checking if the given movies already contain the Ids. if not get the Id
     
@@ -91,7 +98,7 @@ def recommendation(given_movies, number_of_recommendations, num_clusters, lambda
     mean_point = df.loc[given_movies_ids].mean()
 
 
-    ## movie recommendation with cousin similarity
+    ## movie recommendation with cosine similarity
     
     from sklearn.metrics.pairwise import cosine_similarity
     # Get the relevance vector of the given movie

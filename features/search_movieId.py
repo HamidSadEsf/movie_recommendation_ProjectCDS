@@ -14,7 +14,7 @@ def search_movieId(given_movies):
         A list of the movieIds of the given movies in the same order.
         [movieId_1,...,movieId_n]            
     """
-    df_movies = pd.read_csv('data/movies.csv')
+    df_movies = pd.read_csv('data/external/movies.csv')
     given_movies_ids = []
     for title, year in given_movies:
         given_movie_id = df_movies[

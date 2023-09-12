@@ -8,7 +8,7 @@ class elbowMethod():
     '''
     Train a Kmeans model with a list of n_clusters and calculate the distortion of each n_cluster 
     and show the corresponding elbow graph, and the distortion difference graph
-    
+    z
      Methods
     -------
     run (Start=1, Stop=10, Step=1, max_iterations=300

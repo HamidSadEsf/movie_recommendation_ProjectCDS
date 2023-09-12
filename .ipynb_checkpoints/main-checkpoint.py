@@ -1,3 +1,5 @@
+import pandas as pd
+import numpy as np
 from surprise import dump
 from evaluation.Evaluate import Evaluate
 from model.CollaborativeFilteringRec import CollaborativeFilteringRecommender as CFR, train_cf_models, get_collaborative_filtering_weight
@@ -26,12 +28,16 @@ from model.CollaborativeFilteringRec import CollaborativeFilteringRecommender as
 #hybrid_recommendation(sveta_user_id)
 
 # Test evaluation
-knn_wmeans_preds, knn_wmeans_algo = dump.load('./model/trained_models/CF_Model')
-knn_with_means_model = CFR(knn_wmeans_preds, knn_wmeans_algo)
-knn_with_means_model.fit_and_predict()
-trainset = knn_with_means_model.trainset
+#knn_wmeans_preds, knn_wmeans_algo = dump.load('./model/trained_models/CF_Model')
+#knn_with_means_model = CFR(knn_wmeans_preds, knn_wmeans_algo)
+#knn_with_means_model.fit_and_predict()
+#trainset = knn_with_means_model.trainset
 
-eval_knn_wmeans = Evaluate(knn_with_means_model, trainset)
-print(eval_knn_wmeans.Variety())
+#eval_knn_wmeans = Evaluate(knn_with_means_model, trainset)
+#print(eval_knn_wmeans.Variety())
 
-
+from model.ContentBasedRec import recommendation
+ratings = pd.read_csv('./data/processed/final_ratings.csv')
+random_user = np.random.choice(ratings.userId.unique())
+df = recommendation(random_user, 20, 0)
+print(df.head(20))

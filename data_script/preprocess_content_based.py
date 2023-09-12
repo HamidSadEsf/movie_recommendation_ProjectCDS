@@ -41,7 +41,7 @@ def get_releaseyear(X):
     return X.apply(conditions).fillna(1993)
 
 
-def get_df():
+def get_df_ContBaseRec():
     
     """
     Preprocessing the dataset for the content-based recommendation system.
@@ -64,8 +64,8 @@ def get_df():
     """
     
     # Importing the genomes score and genome tags data sets as pandas.DataFrame
-    df_gscore = pd.read_csv('data/genome-scores.csv')
-    df_gtags = pd.read_csv('data/genome-tags.csv')
+    df_gscore = pd.read_csv('data/external/genome-scores.csv')
+    df_gtags = pd.read_csv('data/external/genome-tags.csv')
 
     # Creating the genome dataset
 
@@ -76,7 +76,7 @@ def get_df():
     df_gtagscore = df_gtagscore.pivot(index='movieId', columns='tagId', values='relevance')
 
     # Adding release years as columns
-    df_movies = pd.read_csv('data/movies.csv')
+    df_movies = pd.read_csv('data/external/movies.csv')
    
     # Getting and attaching the release year as a new column
     df_movies['releaseyear'] = get_releaseyear(df_movies['title'])
@@ -95,4 +95,8 @@ def get_df():
     df_movies = df_movies.drop('title', axis=1)
     df_ContBaseRec = pd.merge(df_gtagscore, df_movies, how='inner', on='movieId').set_index('movieId')
     df_ContBaseRec.columns = df_ContBaseRec.columns.astype(str)
+    
+    # Save the final dataset to disk
+    df_ContBaseRec.to_csv('./data/processed/df_ContBaseRec.csv', index=False)
+    
     return df_ContBaseRec
