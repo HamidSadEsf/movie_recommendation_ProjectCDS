@@ -41,6 +41,6 @@ def get_labeledMovies(df, clusters=5):
     df_labeledMovies= pd.DataFrame({'movieId': df.index, 'labels': labels}).merge(df_movies, on='movieId').set_index('movieId')
     
     # Save the final dataset to disk
-    df_labeledMovies.to_csv('./data/processed/df_labeledMovies.csv', index=False)
+    df_labeledMovies.to_csv('./data/processed/df_labeledMovies.csv', index_label="movieId")
     
     return df_labeledMovies

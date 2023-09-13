@@ -97,6 +97,6 @@ def get_df_ContBaseRec():
     df_ContBaseRec.columns = df_ContBaseRec.columns.astype(str)
     
     # Save the final dataset to disk
-    df_ContBaseRec.to_csv('./data/processed/df_ContBaseRec.csv', index=False)
+    df_ContBaseRec.to_csv('./data/processed/df_ContBaseRec.csv', index_label="movieId")
     
     return df_ContBaseRec

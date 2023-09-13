@@ -64,11 +64,13 @@ def recommendation(userId, number_of_recommendations = 0, lambda_val=np.random.r
     # Get the database
     #from data_script.Preprocess_Content_Based import get_df
     df = pd.read_csv('./data/processed/df_ContBaseRec.csv')
+    df.set_index('movieId', inplace=True)
     
     # Clustering the data and getting the labled movies dataset
     #from data_script.Clustering import get_labeledMovies
     #df_labeled = get_labeledMovies(df, num_clusters)
     df_labeled = pd.read_csv('./data/processed/df_labeledMovies.csv')
+    df_labeled.set_index('movieId', inplace=True)
     
     ## Checking if the given movies already contain the Ids. if not get the Id
     
