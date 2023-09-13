@@ -83,12 +83,13 @@ def hybrid_recommendation(userId, threshold=20):
                                          
         # Apply weights to recommendations
         hybrid_rec = collaborative_filtering_rec.merge(content_based_rec, on='movieId')
-        #hybrid_rec_score = (hybrid_rec['score'] * (1 - collaborative_filtering_weight)) + (hybrid_rec['cf_score'] * collaborative_filtering_weight)
         
         # We can try different cases here/
         hybrid_rec_score = hybrid_rec['score'] + hybrid_rec['cf_score']*collaborative_filtering_weight
+        
+        #hybrid_rec_score = (hybrid_rec['score'] * (1 - collaborative_filtering_weight)) + (hybrid_rec['cf_score'] * collaborative_filtering_weight)
+        
         hybrid_rec['hybrid_score'] = hybrid_rec_score
 
-    #hybrid_rec = pd.DataFrame({'movieId': content_based_rec['movieId'], 'title': content_based_rec['title'], 'genre': content_based_rec['genres'], hybrid_score: 'hybrid_rec_score'})
     hybrid_rec.sort_values(by='hybrid_score', ascending=False, inplace=True)
     return hybrid_rec[["movieId", "title", "genres", "hybrid_score"]]
