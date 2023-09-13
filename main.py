@@ -41,5 +41,5 @@ from model.HybridRecommendationSystem import hybrid_recommendation
 ratings = pd.read_csv('./data/processed/final_ratings.csv')
 random_user = np.random.choice(ratings.userId.unique())
 #df = recommendation(random_user, 20, 0)
-df = hybrid_recommendation(random_user)
+df = hybrid_recommendation(68729)
 print(df.head(20))

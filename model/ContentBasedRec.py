@@ -8,7 +8,7 @@ def get_user_movies_by_userid(userId):
     return movies
     
 
-def recommendation(userId, number_of_recommendations, lambda_val=np.random.rand()):
+def recommendation(userId, number_of_recommendations = 0, lambda_val=np.random.rand()):
     
     """
     Making a recommendation by content-based Filtering:
@@ -134,7 +134,10 @@ def recommendation(userId, number_of_recommendations, lambda_val=np.random.rand(
     df_scored = df_scored[df_scored["labels"].isin(given_movies_clusters)]
 
     # getting the movies from the labled set which shows the title and label
-    recommendations = df_scored.sort_values('score', ascending=False).head(number_of_recommendations)
-    
+    if number_of_recommendations != 0:
+        recommendations = df_scored.sort_values('score', ascending=False).head(number_of_recommendations).reset_index()
+    else:
+        #return all the recommendations
+        recommendations = df_scored.sort_values('score', ascending=False).reset_index()
     return recommendations
 

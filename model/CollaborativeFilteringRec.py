@@ -128,7 +128,10 @@ class CollaborativeFilteringRecommender():
             cols = cols[-1:] + cols[:-1]
             subdf = subdf[cols]        
             self.recommenddf = pd.concat([self.recommenddf, subdf], axis = 0)
-        print("Done calculating predictions!")
+        
+        scaler = MinMaxScaler()
+        self.recommenddf ['cf_score'] = scaler.fit_transform(self.recommenddf .rating.values.reshape(-1, 1))
+        print("Done calculating predictions and scores!")
 
     def predict(self, userId, movieId):
         uuid, iid, true_r, predict_r, details  = self.model.predict(userId, movieId)
@@ -145,8 +148,12 @@ class CollaborativeFilteringRecommender():
     def recommend(self, user_id, n):
         #print('All ratings for userid : ' + str(user_id) + ' ...')
         df = self.recommenddf[self.recommenddf['userId'] == user_id].head(n)
-        scaler = MinMaxScaler()
-        df['score'] = scaler.fit_transform(df.rating.values.reshape(-1, 1))
+        #scaler = MinMaxScaler()
+        #df['score'] = scaler.fit_transform(df.rating.values.reshape(-1, 1))
         #display(df)
+        return df
+    
+    def get_rankings_for_movies(self, user_id, movies):
+        df = self.recommenddf[(self.recommenddf["movieId"].isin(movies)) & (self.recommenddf['userId'] == user_id) ]
         return df
 

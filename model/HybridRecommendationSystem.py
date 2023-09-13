@@ -69,19 +69,26 @@ def hybrid_recommendation(userId, threshold=20):
     # Case 2
     if num_user_movies >= threshold:
         # Use content-based recommendation
-        content_based_rec = recommendation(userId, 20)
+        content_based_rec = recommendation(userId, 0)
         
         # Calculate the cf prediction
-        collaborative_filtering_rec = CFR.recommend(user_id = userId, n=20)
+        cf_model = CFR()
+        cf_model.fit_and_predict()
+        collaborative_filtering_rec_1 = cf_model.recommend(userId, 20)
+        collaborative_filtering_rec = cf_model.get_rankings_for_movies(userId, content_based_rec.index.values)
+        
         
         #Calculate the weight for collaborative filtering recommendation
         collaborative_filtering_weight = get_collaborative_filtering_weight(userId)
                                          
         # Apply weights to recommendations
-        hybrid_rec_score = (content_based_rec['score'] * (1 - collaborative_filtering_weight)) + \
-                           (collaborative_filtering_rec['score'] * collaborative_filtering_weight)
+        hybrid_rec = collaborative_filtering_rec.merge(content_based_rec, on='movieId')
+        #hybrid_rec_score = (hybrid_rec['score'] * (1 - collaborative_filtering_weight)) + (hybrid_rec['cf_score'] * collaborative_filtering_weight)
+        
+        # We can try different cases here/
+        hybrid_rec_score = hybrid_rec['score'] + hybrid_rec['cf_score']*collaborative_filtering_weight
+        hybrid_rec['hybrid_score'] = hybrid_rec_score
 
-    hybrid_rec = pd.DataFrame({'movieId': content_based_rec['movieId'], 'title': content_based_rec['title'], 'genre': content_based_rec['genres'], hybrid_score: 'hybrid_rec_score'})
+    #hybrid_rec = pd.DataFrame({'movieId': content_based_rec['movieId'], 'title': content_based_rec['title'], 'genre': content_based_rec['genres'], hybrid_score: 'hybrid_rec_score'})
     hybrid_rec.sort_values(by='hybrid_score', ascending=False, inplace=True)
-
-    return hybrid_rec
+    return hybrid_rec[["movieId", "title", "genres", "hybrid_score"]]
