@@ -36,8 +36,10 @@ from model.CollaborativeFilteringRec import CollaborativeFilteringRecommender as
 #eval_knn_wmeans = Evaluate(knn_with_means_model, trainset)
 #print(eval_knn_wmeans.Variety())
 
-from model.ContentBasedRec import recommendation
+#from model.ContentBasedRec import recommendation
+from model.HybridRecommendationSystem import hybrid_recommendation
 ratings = pd.read_csv('./data/processed/final_ratings.csv')
 random_user = np.random.choice(ratings.userId.unique())
-df = recommendation(random_user, 20, 0)
+#df = recommendation(random_user, 20, 0)
+df = hybrid_recommendation(random_user)
 print(df.head(20))
