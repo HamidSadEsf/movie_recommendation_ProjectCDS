@@ -1,8 +1,14 @@
 import pandas as pd
 import numpy as np
 from surprise import dump
-from evaluation.Evaluate import Evaluate
+import pickle
+from evaluation.Evaluate import Evaluate, Evaluate_CFR
 from model.CollaborativeFilteringRec import CollaborativeFilteringRecommender as CFR, train_cf_models, get_collaborative_filtering_weight
+import model.HybridRecommendationSystem as HR
+import model.ContentBasedRec as CBR
+
+ratings = pd.read_csv('./data/processed/final_ratings.csv')
+random_user = np.random.choice(ratings.userId.unique()) # picks a random user
 
 # preprocess and save data for collaborative filtering modelling
 #from data_script.preprocess_collaborative import hamid_user_id, sveta_user_id, anti_hamid_user_id, anti_sveta_user_id
@@ -12,7 +18,7 @@ from model.CollaborativeFilteringRec import CollaborativeFilteringRecommender as
 
 # Load the trained models
 #cf_predictions, cf_recommender_algo = dump.load('./model/trained_models/CF_Model')
-#CFR = CF(cf_predictions, cf_recommender_algo)
+#CFR = CFR(cf_predictions, cf_recommender_algo)
 #CFR.fit_and_predict() # performs all the computation
 #CFR.cross_validate()
 
@@ -23,23 +29,33 @@ from model.CollaborativeFilteringRec import CollaborativeFilteringRecommender as
 # Get CF weight coefficients for the hybrid model
 #print(get_collaborative_filtering_weight(anti_sveta_user_id))
 
+# Test content-based recommender
+df = pd.read_csv('./data/processed/df_ContBaseRec.csv')
+df.set_index('movieId', inplace=True)
+nn = CBR.train_nearest_neighbors_model(df)
+cb_df = CBR.recommendation(62095, 20)
+cb_df.head(20)
+
 # Test hybrid recommendations
 #from model.HybridRecommendationSystem import hybrid_recommendation
 #hybrid_recommendation(sveta_user_id)
 
 # Test evaluation
-#knn_wmeans_preds, knn_wmeans_algo = dump.load('./model/trained_models/CF_Model')
-#knn_with_means_model = CFR(knn_wmeans_preds, knn_wmeans_algo)
-#knn_with_means_model.fit_and_predict()
-#trainset = knn_with_means_model.trainset
+#cf_predictions_preds, cf_algo = dump.load('./model/trained_models/CF_Model')
+#cf_model = CFR(cf_predictions_preds, cf_algo)
+#cf_model.fit_and_predict()
 
-#eval_knn_wmeans = Evaluate(knn_with_means_model, trainset)
-#print(eval_knn_wmeans.Variety())
+#eval_cf_model = Evaluate_CFR(cf_model)
+#print(eval_cf_model.variety())
+
+#Evaluate = Evaluate()
+#print(Evaluate.variety_collaborative_filtering())
+#print(Evaluate.variety_content_based())
 
 #from model.ContentBasedRec import recommendation
-from model.HybridRecommendationSystem import hybrid_recommendation
-ratings = pd.read_csv('./data/processed/final_ratings.csv')
-random_user = np.random.choice(ratings.userId.unique())
+#from model.HybridRecommendationSystem import hybrid_recommendation
+#ratings = pd.read_csv('./data/processed/final_ratings.csv')
+#random_user = np.random.choice(ratings.userId.unique())
 #df = recommendation(random_user, 20, 0)
-df = hybrid_recommendation(54124)
-print(df.head(20))
+#df = hybrid_recommendation(54124)
+#print(df.head(20))

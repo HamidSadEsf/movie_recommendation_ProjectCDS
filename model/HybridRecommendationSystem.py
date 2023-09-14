@@ -8,7 +8,7 @@ def get_user_movies_by_userid(userId):
     movies = ratings[ratings.userId == userId].movieId.values.tolist()
     return movies
 
-def hybrid_recommendation(userId, threshold=20):
+def hybrid_recommendation(userId, threshold=20, CFR = None):
     """
     Making a hybrid recommendation list from the three recommendation Systems:
     Cold starter (CS), Content-Based (CB), Collaborative Filtering (CF)
@@ -72,9 +72,12 @@ def hybrid_recommendation(userId, threshold=20):
         content_based_rec = recommendation(userId, 0)
         
         # Calculate the cf prediction
-        cf_model = CFR()
-        cf_model.fit_and_predict()
-        collaborative_filtering_rec_1 = cf_model.recommend(userId, 20)
+        if CFR is None:
+            cf_model = CFR()
+            cf_model.fit_and_predict()
+        else:
+            cf_model = CFR
+            
         collaborative_filtering_rec = cf_model.get_rankings_for_movies(userId, content_based_rec.index.values)
         
         
@@ -92,4 +95,4 @@ def hybrid_recommendation(userId, threshold=20):
         hybrid_rec['hybrid_score'] = hybrid_rec_score
 
     hybrid_rec.sort_values(by='hybrid_score', ascending=False, inplace=True)
-    return hybrid_rec[["movieId", "title", "genres", "hybrid_score"]]
+    return hybrid_rec[["movieId", "title", "genres", "hybrid_score"]].head(20)

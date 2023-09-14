@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import sklearn.neighbors
+
 
 def get_releaseyear(X):
     
@@ -100,3 +102,4 @@ def get_df_ContBaseRec():
     df_ContBaseRec.to_csv('./data/processed/df_ContBaseRec.csv', index_label="movieId")
     
     return df_ContBaseRec
+    

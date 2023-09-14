@@ -148,9 +148,6 @@ class CollaborativeFilteringRecommender():
     def recommend(self, user_id, n):
         #print('All ratings for userid : ' + str(user_id) + ' ...')
         df = self.recommenddf[self.recommenddf['userId'] == user_id].head(n)
-        #scaler = MinMaxScaler()
-        #df['score'] = scaler.fit_transform(df.rating.values.reshape(-1, 1))
-        #display(df)
         return df
     
     def get_rankings_for_movies(self, user_id, movies):

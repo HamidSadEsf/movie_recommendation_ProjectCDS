@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
+import sklearn.neighbors
 from sklearn.cluster import KMeans
+import pickle
 
 def get_user_movies_by_userid(userId):
     ratings = pd.read_csv('data/processed/final_ratings.csv')
@@ -17,7 +19,7 @@ def recommendation(userId, number_of_recommendations = 0, lambda_val=np.random.r
         Step 1: Preprocessing the gnome-scores.csv to a dataset 
         Step 2: applying a preclustering to the dataset and get the labels for each movie. 
         Step 3: Calculate the mean vector of the given movies 
-        Step 4: Rank the movies by their cousine similarity to the mean point with sklearn.metrics.pairwise.cosine_similarity
+        Step 4: Rank the movies by their cosine similarity to the mean point with sklearn.metrics.pairwise.cosine_similarity
                 The similarity score is calculated upon the relevance of the tags (see: data_script/Preprocess_Content_Based)
         Step 5: Calculate the distances of the movies to the mean vector with sklearn.neighbors.
         Step 6: Diversify the ranking of step 4 by substracting the weighted (lambda) distances
@@ -106,15 +108,17 @@ def recommendation(userId, number_of_recommendations = 0, lambda_val=np.random.r
     # Get the relevance vector of the given movie
     given_movie_vector = mean_point.values.reshape(1, -1)
     # Calculate cosine similarity between the given movie and all other movies
+    
     similarity_scores = cosine_similarity(df.values, given_movie_vector)
     
 
     ## Calculate Distances of mean vector to the nearest neighbors
     
     # Import and fit the model
-    import sklearn.neighbors
-    nn = sklearn.neighbors.NearestNeighbors(n_neighbors=df.shape[0])
-    nn.fit(df)
+    #nn = sklearn.neighbors.NearestNeighbors(n_neighbors=df.shape[0])
+    #nn.fit(df)
+    nn = pickle.load(open('model/trained_models/CB_nearest_neighbors.sav', 'rb'))
+    
     # Getting the distances of any point in the df to mean point
     distances, indices = nn.kneighbors(mean_point.values.reshape(1, -1))
     # Normalize the data
@@ -143,3 +147,16 @@ def recommendation(userId, number_of_recommendations = 0, lambda_val=np.random.r
         recommendations = df_scored.sort_values('score', ascending=False).reset_index()
     return recommendations
 
+
+def train_nearest_neighbors_model(df=None):
+    if df is None:
+        df = pd.read_csv('./data/processed/df_ContBaseRec.csv')
+        df.set_index('movieId', inplace=True)
+    nn = sklearn.neighbors.NearestNeighbors(n_neighbors=df.shape[0])
+    nn.fit(df.values)
+    #save model to disk
+    filename = 'model/trained_models/CB_nearest_neighbors.sav'
+    pickle.dump(nn, open(filename, 'wb'))
+    return nn
+    
+    

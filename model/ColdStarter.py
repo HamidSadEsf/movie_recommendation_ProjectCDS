@@ -1,4 +1,6 @@
 import pandas as pd
+from data_script.preprocess_content_based import get_releaseyear
+
 def cold_starters(amount = 10):
     
     """
@@ -40,7 +42,6 @@ def cold_starters(amount = 10):
     df_rating.columns = ['avg_rating', 'rating_count']
     
     # Getting the source data frame with the release year column
-    from data_script.Preprocess_Content_Based import get_releaseyear
     df_movies = pd.read_csv('data/external/movies.csv')
     df_movies['releaseyear'] = get_releaseyear(df_movies['title']).astype(int)
     
