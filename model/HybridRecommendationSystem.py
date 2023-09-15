@@ -1,5 +1,5 @@
 import pandas as pd
-from model.ContentBasedRec import recommendation
+from model.ContentBasedRec import ContentBasedRecommender
 from model.CollaborativeFilteringRec import CollaborativeFilteringRecommender as CFR, get_collaborative_filtering_weight
 from model.ColdStarter import cold_starters
 
@@ -53,11 +53,13 @@ def hybrid_recommendation(userId, threshold=20, CFR = None):
     user_movies = get_user_movies_by_userid(userId)
     num_user_movies = len(user_movies)
     hybrid_rec = pd.DataFrame()
+    CBR = ContentBasedRecommender()
+    CBR.load_database
     
     # Case 1
     if num_user_movies < threshold:
         # Use content-based recommendation
-        content_based_rec = recommendation(userId, 0)
+        content_based_rec = CBR.recommendation(userId)
         
         coldstarter_rec = cold_starters()
         # Calculate the weight for content-based recommendation
@@ -69,7 +71,7 @@ def hybrid_recommendation(userId, threshold=20, CFR = None):
     # Case 2
     if num_user_movies >= threshold:
         # Use content-based recommendation
-        content_based_rec = recommendation(userId, 0)
+        content_based_rec = CBR.recommendation(userId)
         
         # Calculate the cf prediction
         if CFR is None:
