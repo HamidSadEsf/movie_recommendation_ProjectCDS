@@ -57,7 +57,7 @@ def hybrid_recommendation(userId, threshold=20, CFR = None):
     # Case 1
     if num_user_movies < threshold:
         # Use content-based recommendation
-        content_based_rec = recommendation(userId, 20)
+        content_based_rec = recommendation(userId, 0)
         
         coldstarter_rec = cold_starters()
         # Calculate the weight for content-based recommendation
