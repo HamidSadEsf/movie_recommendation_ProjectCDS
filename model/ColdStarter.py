@@ -1,4 +1,6 @@
 import pandas as pd
+from data_script.preprocess_content_based import get_releaseyear
+
 def cold_starters(amount = 10):
     
     """
@@ -35,13 +37,12 @@ def cold_starters(amount = 10):
         return norm_obj
     
     # Make a df from the rating database, grouped by movie Id with an average rating and amount of rating
-    df_rating = pd.read_csv('data/ratings.csv').groupby('movieId').agg({'rating': ['mean', 'count']})
+    df_rating = pd.read_csv('data/external/ratings.csv').groupby('movieId').agg({'rating': ['mean', 'count']})
     # Flatten the multi-index columns to have a single level of columns
     df_rating.columns = ['avg_rating', 'rating_count']
     
     # Getting the source data frame with the release year column
-    from data_script.Preprocess_Content_Based import get_releaseyear
-    df_movies = pd.read_csv('data/movies.csv')
+    df_movies = pd.read_csv('data/external/movies.csv')
     df_movies['releaseyear'] = get_releaseyear(df_movies['title']).astype(int)
     
     # Filtering movies from the last two years

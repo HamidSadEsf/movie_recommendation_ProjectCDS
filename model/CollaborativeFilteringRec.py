@@ -50,14 +50,14 @@ def train_CF_Model(trainset, testset, data):
     print('Mean CV RMSE is ' + str(cv_result))
     # save model and its predictions to the disk
     dump.dump('model/trained_models/CF_Model',algo=algo,predictions=algo_predictions)
-    return algo_predictions; algo
+    return algo_predictions, algo
     
 
 #train and save the models
 def train_cf_models():
     #prepare data
     trainset, testset, data = prepare_data()
-    cf_predictions, cf_algo = train_CF_Model( trainset, testset, data)
+    cf_predictions, cf_algo = train_CF_Model(trainset, testset, data)
     knn_predictions, knn = train_KNN_CFWeights(trainset, testset, data)
     print("Training is done!")
     return trainset, testset, data, cf_algo, cf_predictions, knn, knn_predictions    
@@ -128,7 +128,10 @@ class CollaborativeFilteringRecommender():
             cols = cols[-1:] + cols[:-1]
             subdf = subdf[cols]        
             self.recommenddf = pd.concat([self.recommenddf, subdf], axis = 0)
-        print("Done calculating predictions!")
+        
+        scaler = MinMaxScaler()
+        self.recommenddf ['cf_score'] = scaler.fit_transform(self.recommenddf .rating.values.reshape(-1, 1))
+        print("Done calculating predictions and scores!")
 
     def predict(self, userId, movieId):
         uuid, iid, true_r, predict_r, details  = self.model.predict(userId, movieId)
@@ -145,8 +148,9 @@ class CollaborativeFilteringRecommender():
     def recommend(self, user_id, n):
         #print('All ratings for userid : ' + str(user_id) + ' ...')
         df = self.recommenddf[self.recommenddf['userId'] == user_id].head(n)
-        scaler = MinMaxScaler()
-        df['score'] = scaler.fit_transform(df.rating.values.reshape(-1, 1))
-        #display(df)
+        return df
+    
+    def get_rankings_for_movies(self, user_id, movies):
+        df = self.recommenddf[(self.recommenddf["movieId"].isin(movies)) & (self.recommenddf['userId'] == user_id) ]
         return df
 

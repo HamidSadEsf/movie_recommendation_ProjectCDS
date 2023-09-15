@@ -5,15 +5,16 @@ import random
 from scipy.sparse import csr_matrix, save_npz
 
 # import datasets:
-print("Creating dataframes...")
+print("Creating raw dataframes...")
 genome_scores =  pd.read_csv('data/external/genome-scores.csv')
 movies = pd.read_csv('data/external/movies.csv',  usecols = ["movieId"])
 ratings = pd.read_csv('data/external/ratings.csv', usecols = ["movieId", "userId", "rating"])
-#print('Filtering ratings below 4...')
-#ratings = ratings[ratings.rating > 3.5]
+
+print("Creating dataframes with Sveta and Hamid ratings...")
 sveta_ratings = pd.read_csv('data/external/sveta-ratings.csv')
 hamid_ratings = pd.read_csv('data/external/hamid-ratings.csv')
 
+print("Creating dataframes with anti-Sveta and anti-Hamid ratings...")
 #create anti sveta and anti-hamid ratings
 anti_sveta_ratings = sveta_ratings.copy()
 anti_sveta_ratings['rating'] = sveta_ratings["rating"].apply(lambda x: -1 * (x - sveta_ratings.rating.mean())+ sveta_ratings.rating.mean() if -1 * (x - sveta_ratings.rating.mean())+ sveta_ratings.rating.mean() <= 5 else 5)
@@ -21,7 +22,7 @@ anti_hamid_ratings = hamid_ratings.copy()
 anti_hamid_ratings['rating'] = hamid_ratings["rating"].apply(lambda x: -1 * (x - hamid_ratings.rating.mean())+ hamid_ratings.rating.mean() if -1 * (x - sveta_ratings.rating.mean())+ sveta_ratings.rating.mean() <= 5 else 5)
 
 # Create a movie - user - rating data frame with movies present in all the dataframes
-print("Filtering users...")
+print("Creating new ratings dataframe for collaborative filtering ...")
 tagged_movies = pd.DataFrame(genome_scores['movieId'].value_counts()).index
 mov_rat = pd.merge(movies, ratings, on="movieId")
 final_df = mov_rat[mov_rat["movieId"].isin(tagged_movies)]
