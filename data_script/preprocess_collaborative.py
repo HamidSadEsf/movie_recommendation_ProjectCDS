@@ -8,7 +8,7 @@ from scipy.sparse import csr_matrix, save_npz
 print("Creating raw dataframes...")
 genome_scores =  pd.read_csv('data/external/genome-scores.csv')
 movies = pd.read_csv('data/external/movies.csv',  usecols = ["movieId"])
-ratings = pd.read_csv('data/external/ratings.csv', usecols = ["movieId", "userId", "rating"])
+ratings = pd.read_csv('data/external/ratings.csv', usecols = ["movieId", "userId", "rating", "timestamp"])
 
 print("Creating dataframes with Sveta and Hamid ratings...")
 sveta_ratings = pd.read_csv('data/external/sveta-ratings.csv')
@@ -91,7 +91,7 @@ save_npz("./data/processed/csr_ratings.npz", csr_data)
 
 # preparation of the final rating dataframe
 print("Preparing the final rating matrix...")
-final_ratings = final_df[["movieId", "userId", "rating"]].reset_index(drop=True)
+final_ratings = final_df.reset_index(drop=True)
 final_ratings.to_csv('./data/processed/final_ratings.csv', index=False)
       
 print("Data preprocesssing for collaborative filtering modeling is completed!")
