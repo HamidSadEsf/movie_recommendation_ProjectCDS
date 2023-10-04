@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import os.path
 import sklearn.neighbors
 from sklearn.cluster import KMeans
 import pickle
@@ -99,6 +100,12 @@ class ContentBasedRecommender():
     def __init__(self):
         self.df = None
         self.df_labeled = None
+        self.df_recommendations = None
+        
+        path = './data/processed/CBMatrix.csv'
+        if os.path.isfile(path) == True:
+            self.df_recommendations = pd.read_csv(path)
+           
     
     def load_database(self):
         
@@ -189,7 +196,7 @@ class ContentBasedRecommender():
             recommendations = df_scored.sort_values('score', ascending=False).reset_index()
         return recommendations
     
-def get_CBMatrix(self):
+def get_CBMatrix():
     """
     getting the Matrix of users and movies with the predicted recommendation score by CB for each user and movie
 
@@ -199,7 +206,7 @@ def get_CBMatrix(self):
     """
     CBR = ContentBasedRecommender()
     CBR.load_database()
-    final_rating = pd.read_csv(r'data\processed\final_ratings.csv')
+    final_rating = pd.read_csv('./data/processed/final_ratings.csv')
     CBMatrix = pd.DataFrame(index = CBR.df.index).sort_index()
     for userid in final_rating['userId'].unique():
         cbr = CBR.recommendation(userid).set_index('movieId').sort_index()

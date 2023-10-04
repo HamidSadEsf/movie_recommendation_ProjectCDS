@@ -1,4 +1,5 @@
 import pandas as pd
+import os.path
 from model.ContentBasedRec import ContentBasedRecommender
 from model.CollaborativeFilteringRec import CollaborativeFilteringRecommender as CFR, get_collaborative_filtering_weight
 from model.ColdStarter import cold_starters
@@ -56,6 +57,11 @@ class HybridRecommender():
     def __init__(self):
         self.CBR = None
         self.cf_model = None
+        self.df_recommendations = None
+        
+        path = './data/processed/HRMatrix.csv'
+        if os.path.isfile(path) == True:
+            self.df_recommendations = pd.read_csv(path)
         
         
     def load_datasets(self):
@@ -137,9 +143,9 @@ def get_HRMatrix():
     """
     hr = HybridRecommender()
     hr.load_datasets()
-    final_rating = pd.read_csv(r'data\processed\final_ratings.csv')
+    final_rating = pd.read_csv('./data/processed/final_ratings.csv')
     HRMatrix = pd.DataFrame(index = hr.CBR.df.index).sort_index()
-    for userid in final_rating['userId'].unique()[:1000]:
+    for userid in final_rating['userId'].unique():
         hr_score = hr.hybrid_recommendation(userid, number_of_recommendations=0).set_index('movieId').sort_index()
         HRMatrix= pd.concat([HRMatrix, hr_score.hybrid_score.rename(userid)], axis=1)
         print('user nr.', userid)

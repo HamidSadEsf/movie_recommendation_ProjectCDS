@@ -30,17 +30,20 @@ random_user = np.random.choice(ratings.userId.unique()) # picks a random user
 #print(get_collaborative_filtering_weight(anti_sveta_user_id))
 
 # Test content-based recommender
-df = pd.read_csv('./data/processed/df_ContBaseRec.csv')
-df.set_index('movieId', inplace=True)
-nn = CBR.train_nearest_neighbors_model(df)
-cb_df = CBR.recommendation(62095, 20)
-cb_df.head(20)
+
+#df = pd.read_csv('./data/processed/df_ContBaseRec.csv')
+#df.set_index('movieId', inplace=True)
+#nn = CBR.train_nearest_neighbors_model(df)
+#cb_df = CBR.recommendation(62095, 20)
+#cb_df.head(20)
 
 # Test hybrid recommendations
+
 #from model.HybridRecommendationSystem import hybrid_recommendation
 #hybrid_recommendation(sveta_user_id)
 
 # Test evaluation
+
 #cf_predictions_preds, cf_algo = dump.load('./model/trained_models/CF_Model')
 #cf_model = CFR(cf_predictions_preds, cf_algo)
 #cf_model.fit_and_predict()
@@ -59,3 +62,8 @@ cb_df.head(20)
 #df = recommendation(random_user, 20, 0)
 #df = hybrid_recommendation(54124)
 #print(df.head(20))
+
+#Testing new CB classes:
+from model.ContentBasedRec import ContentBasedRecommender
+cb_recommender = ContentBasedRecommender()
+print(cb_recommender.df_recommendations.head())
