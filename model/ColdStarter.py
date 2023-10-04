@@ -10,13 +10,13 @@ def cold_starters(amount = 10):
     
     Parameters
     ----------
-    X:  integer
-        The number of movies to be recommended. If 0 it returns the whole ranked table
+    amount:  integer
+        The number of movies to be recommended. If 0 it returns the whole ranked table.
         (Default is 10)
     Returns
     ----------
     pandas.Dataframe
-        The recommended movies and their score.
+        The recommended movies and their cs_score.
         Index: movieId
         rows: movies 
         Columns:
@@ -26,9 +26,9 @@ def cold_starters(amount = 10):
             genres:
                 String 
                 genres1|genre2|...|genren
-            score
+            cs_score
                 Float
-                the calculated score between 0-1
+                the calculated cs_score between 0-1
         
     """
     # Function to normalize data
@@ -60,17 +60,17 @@ def cold_starters(amount = 10):
         # Normalize the rating_count column within each year
         df['rating_count'] = df.groupby('releaseyear', group_keys=False)['rating_count'].apply(lambda x: (x - x.min()) / (x.max() - x.min()))
     
-        # Normalize release year to be labeled to use it within the normalized score
+        # Normalize release year to be labeled to use it within the normalized cs_score
         df['releaseyear'] = Min_Max(df.releaseyear)
         
-        # Calculating the score based on avg rating, rating amount and release year using weights
-        df['score'] = df.avg_rating + 1.25 * df.rating_count + 0.5 * df.releaseyear
-        df['score'] = Min_Max(df['score'])
+        # Calculating the cs_score based on avg rating, rating amount and release year using weights
+        df['cs_score'] = df.avg_rating + 1.25 * df.rating_count + 0.5 * df.releaseyear
+        df['cs_score'] = Min_Max(df['cs_score'])
         # Dropping the unnecessary columns
         df = df.drop(['avg_rating', 'rating_count', 'releaseyear'], axis = 1)
         
         # Returning the ranked table
-        return df.sort_values(by='score', ascending=False)
+        return df.sort_values(by='cs_score', ascending=False).reset_index(names='movieId')
         
     else: 
         # Returning the recommendation list by pre-filtering the data
@@ -89,14 +89,14 @@ def cold_starters(amount = 10):
         # Filtering the top 0.25% of rating count of each year independently
         df = df[df.rating_count >= df.rating_count.quantile(0.75)]
         
-        # Normalize release year to be labeled to use it within the normalized score
+        # Normalize release year to be labeled to use it within the normalized cs_score
         df['releaseyear'] = Min_Max(df.releaseyear)
         
-        # Calculating the score based on avg rating, rating amount and release year using weights
-        df['score'] = df.avg_rating + 1.25 * df.rating_count + 0.5 * df.releaseyear
-        df['score'] = Min_Max(df['score'])
+        # Calculating the cs_score based on avg rating, rating amount and release year using weights
+        df['cs_score'] = df.avg_rating + 1.25 * df.rating_count + 0.5 * df.releaseyear
+        df['cs_score'] = Min_Max(df['cs_score'])
         # Dropping the unnecessarily columns
         df = df.drop(['avg_rating', 'rating_count', 'releaseyear'], axis = 1)
         
         # Returning a recommendation list with the predefined amount of recommendation
-        return df.sort_values(by='score', ascending=False).head(amount)
+        return df.sort_values(by='cs_score', ascending=False).head(amount).reset_index(names='movieId')
