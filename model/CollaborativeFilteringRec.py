@@ -1,10 +1,13 @@
 import numpy as np
 import pandas as pd
+import os.path
 from sklearn import preprocessing
 from collections import defaultdict
 from surprise import Dataset, Reader, SVD, KNNBasic, KNNWithMeans, dump, accuracy
 from surprise.model_selection import cross_validate
 from sklearn.preprocessing import MinMaxScaler
+
+movie_df = pd.read_csv('./data/external/movies.csv')
 
 def prepare_data():
     print("Getting the ratings matrix...")
@@ -62,18 +65,21 @@ def train_cf_models():
     print("Training is done!")
     return trainset, testset, data, cf_algo, cf_predictions, knn, knn_predictions    
 
-def get_collaborative_filtering_weight(userId, threshold = 0, algo=None):
+def get_collaborative_filtering_weights(trainset = None, similarity_mat = None, threshold = 0, algo=None):
     if algo is None:
         knn_predictions, knn = dump.load('./model/trained_models/KNN_CFWeights')
-    trainset, ___, ___ = prepare_data()
-    iuid = trainset.to_inner_uid(userId)    
-    similarity_mat = knn.compute_similarities()
-    
+        
+    if trainset is None:
+        trainset, ___, ___ = prepare_data()
+        
+    if similarity_mat is None:
+        similarity_mat = knn.compute_similarities()
+        
     a = np.empty(len(similarity_mat))
     for i in range(len(similarity_mat)):
         a[i] = (similarity_mat[i] > 0).sum() -1
     weights = a / a.max()
-    return round(weights[iuid],3)
+    return weights
 
 def order_test_results(predictions, n = None):
     # First map the predictions to each user.
@@ -103,11 +109,16 @@ class CollaborativeFilteringRecommender():
         self.recommenddf = None
         self.predictions = None
         self.mean_cv_rmse = None
-
-    def fit_and_predict(self):
+        
+        path = './data/processed/CFMatrix.csv'
+        if os.path.isfile(path) == True:
+            self.recommenddf = pd.read_csv(path)
+            
+    def recompute_surprise_data(self):
         #prepare data
         self.trainset, self.testset, self.data = prepare_data()
-        
+
+    def fit_and_predict(self):
         if (self.model is None or self.pred_test is None):
             #print('Fitting the train data...')
             self.model = SVD()
@@ -120,6 +131,7 @@ class CollaborativeFilteringRecommender():
         #print('RMSE for the predicted result is ' + str(rmse))   
         
         self.predictions = order_test_results(self.pred_test)
+        
         self.recommenddf = pd.DataFrame(columns=['userId', 'movieId', 'rating'])
         for item in self.predictions:
             subdf = pd.DataFrame(self.predictions[item], columns=['movieId', 'rating'])
@@ -130,8 +142,12 @@ class CollaborativeFilteringRecommender():
             self.recommenddf = pd.concat([self.recommenddf, subdf], axis = 0)
         
         scaler = MinMaxScaler()
-        self.recommenddf ['cf_score'] = scaler.fit_transform(self.recommenddf .rating.values.reshape(-1, 1))
+        self.recommenddf['cf_score'] = scaler.fit_transform(self.recommenddf .rating.values.reshape(-1, 1))
+        
+        # save to the harddrive:
+        self.recommenddf.to_csv('./data/processed/CFMatrix.csv')
         print("Done calculating predictions and scores!")
+        
 
     def predict(self, userId, movieId):
         uuid, iid, true_r, predict_r, details  = self.model.predict(userId, movieId)
@@ -153,4 +169,29 @@ class CollaborativeFilteringRecommender():
     def get_rankings_for_movies(self, user_id, movies):
         df = self.recommenddf[(self.recommenddf["movieId"].isin(movies)) & (self.recommenddf['userId'] == user_id) ]
         return df
+    
+    
+def generate_cf_matrix():
+    """
+    getting the Matrix of users and movies with the predicted recommendation score by collaborative filtering for each user and movie
+
+    Returns:
+        CFMatrix: narray
+        Matrix of dimension n_users and n_movies. Each value is the predicted score for each movie and user
+    """
+    CFR = CollaborativeFilteringRecommender()
+    CFR.fit_and_predict()
+    final_rating = pd.read_csv('./data/processed/final_ratings.csv')
+    movies = final_rating['movieId'].unique()
+    CFMatrix = pd.DataFrame(columns = movies)
+    print(CFMatrix)
+    return
+    for userid in final_rating['userId'].unique():
+        record = CFR.get_rankings_for_movies(userid, movies).merge(movie_df, on='movieId', how='left')
+        CFMatrix[userid]= record.cf_score
+    #CBMatrix = CBMatrix.transpose().rename_axis("userId", axis=0).rename_axis("movieId", axis=1)
+    #CBMatrix.to_csv('./data/processed/CFMatrix.csv', index_label="userId")
+    CFMatrix.columns = record.movieId
+    print(CFMatrix.head())
+    return CFMatrix
 

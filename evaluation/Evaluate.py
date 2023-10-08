@@ -2,9 +2,12 @@ import numpy as np
 import pandas as pd
 from surprise import dump
 import random
-from model.CollaborativeFilteringRec import CollaborativeFilteringRecommender
-import model.HybridRecommendationSystem as HR
-import model.ContentBasedRec as CBR
+import matplotlib.pyplot as plt
+from surprise import SVD, KNNBasic, KNNWithMeans
+
+from model.CollaborativeFilteringRec import CollaborativeFilteringRecommender, prepare_data
+from model.HybridRecommendationSystem import HybridRecommender
+from model.ContentBasedRec import ContentBasedRecommender
 
 class Evaluate_CFR():
     def __init__(self, model):
@@ -33,17 +36,61 @@ class Evaluate_CFR():
     
 class Evaluate():
     def __init__(self):
-        cf_predictions, cf_recommender_algo = dump.load('./model/trained_models/CF_Model')
-        CFR = CollaborativeFilteringRecommender(cf_predictions, cf_recommender_algo)
-        CFR.fit_and_predict()
-        self.cf_model = CFR
-        self.cb_model = CBR
-        self.hybrid_model = HR
+        print('...Loading Content Based Recommender..')
+        self.cbr = ContentBasedRecommender()
+        print('...Loading Hybrid Recommender..')
+        self.hr = HybridRecommender()
+        print('...Loading Collaborative Filtering Recommender..')
+        self.cf_model = CollaborativeFilteringRecommender()
+        self.cf_model.recompute_surprise_data() # sets trainset etc
         self.variety_nb_users = 100
         self.variety_nb_recommendations = 10
-        self.var_repetitions = 1
+        self.var_repetitions = 10
         ratings = pd.read_csv('./data/processed/final_ratings.csv')
         self.userIds = ratings.userId.unique().tolist()
+        self.knn_similarities = None
+     
+    def compute_surprise_similarity(self):
+        print('...Computing KNN similarity matrix...')
+        sim_options = {'name': 'msd',
+               'min_support': 3,
+               'user_based': True}
+
+        knn = KNNBasic(k=25,sim_options=sim_options)
+        knn.fit(self.cf_model.trainset)
+        #knn_predictions = knn.test(self.testset)
+        self.knn_similarities = knn.compute_similarities()
+        return
+
+    def compute_prediction_overlap(self, userId_1, userId_2, model_type = 'cf'):
+        overlap_array = []
+        if model_type == 'cf':
+            rec_1 = set(self.cf_model.recommend(userId_1, 20).movieId.values)
+            rec_2 = set(self.cf_model.recommend(userId_2, 20).movieId.values)
+        elif model_type == 'cb':
+            rec_1 = set(self.cbr.recommendation(userId_1, 20).movieId.values)
+            rec_2 = set(self.cbr.recommendation(userId_2, 20).movieId.values)
+        elif model_type == 'hyb':
+            rec_1 = set(self.hr.hybrid_recommendation(userId_1, 20).movieId.values)
+            rec_2 = set(self.hr.hybrid_recommendation(userId_2, 20).movieId.values)
+            
+        overlap = rec_1 
+        return len(rec_1.intersection(rec_2))
+            
+    def return_similarities(self, userId, model_type):
+        df = pd.DataFrame(columns=["uuid", "similarity", "overlap"])
+        uuid = self.cf_model.trainset.to_inner_uid(userId)
+        sim_array = self.knn_similarities[uuid]
+        uuid_array = np.arange(self.knn_similarities.shape[0])
+        df["uuid"] = uuid_array
+        df["similarity"] = sim_array
+        df["overlap"] = df.apply(lambda x: self.compute_prediction_overlap(userId, self.cf_model.trainset.to_raw_uid(x["uuid"]), model_type), axis=1)
+        return df.sort_values(by=["similarity"]).reset_index(drop=True)
+    
+    def personalisation(self, model_type):
+        random_user = np.random.choice(self.userIds) # picks a random user
+        df_perso = self.return_similarities(random_user, model_type)
+        return df_perso
 
     def variety_collaborative_filtering(self):
         var = []
@@ -69,7 +116,7 @@ class Evaluate():
             selection_of_users =  np.array(random.sample(self.userIds, self.variety_nb_users))
             for u in selection_of_users:
                 # While computing 10 recommendatiosn for each, count only unique movies
-                recommendations = self.cb_model.recommendation(u, self.variety_nb_recommendations)
+                recommendations = self.cbr.recommendation(u, self.variety_nb_recommendations)
                 movie_list = set(recommendations.movieId.values.tolist())
                 unique_movies = unique_movies | movie_list
             
@@ -84,7 +131,7 @@ class Evaluate():
             selection_of_users =  np.array(random.sample(self.userIds, self.variety_nb_users))
             for u in selection_of_users:
                 # While computing 10 recommendatiosn for each, count only unique movies
-                recommendations = self.hybrid_model.hybrid_recommendation(u, self.variety_nb_recommendations, self.cf_model)
+                recommendations = self.hr.hybrid_recommendation(u, self.variety_nb_recommendations)
                 movie_list = set(recommendations.movieId.values.tolist())
                 unique_movies = unique_movies | movie_list
             
@@ -94,6 +141,7 @@ class Evaluate():
     def Coverage(self):
         return len(self.model.pred_test) / len(self.testset)
 
-    
-    #def personalisation_cf(self):
+        
+        
+        
         
