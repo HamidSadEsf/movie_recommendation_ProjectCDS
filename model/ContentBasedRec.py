@@ -114,13 +114,12 @@ class ContentBasedRecommender():
         """
                 
         # Get the database
-        #from data_script.Preprocess_Content_Based import get_df
+        
         self.df = pd.read_csv('./data/processed/df_ContBaseRec.csv')
         self.df.set_index('movieId', inplace=True)
         
         # Clustering the data and getting the ladled movies dataset
-        #from data_script.Clustering import get_labeledMovies
-        #self.df_labeled = get_labeledMovies(self.df, num_clusters)
+        
         self.df_labeled = pd.read_csv('./data/processed/df_labeledMovies.csv')
         self.df_labeled.set_index('movieId', inplace=True)
       

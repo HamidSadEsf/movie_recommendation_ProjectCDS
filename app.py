@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-bg_image= f'''
+bg_image = f'''
     <style>
     [data-testid="stAppViewContainer"] > .main {{
     background-image: url("Streamlit_Asset\V01_Dark.jpg");
@@ -14,7 +14,7 @@ bg_image= f'''
 st.markdown(bg_image,  unsafe_allow_html=True)
 st.title('Movie Recommendation System App')
 
-pages = ['Introduction', 'Databases', 'Preprocessing', 'Content based', 'User based', 'Hybrid', 'Conclusion']
+pages = ['Introduction', 'Databases', 'Preprocessing', 'Content based', 'Collaborative Filtering', 'Hybrid', 'Conclusion']
 page = st.sidebar.radio('Go to', pages)
 
 match page:
@@ -31,17 +31,29 @@ match page:
     case "Preprocessing":
         st.write("## data preparation pipeline")
 
-    case "Content based":
+    case "Content based recommendation":
+        from model.ContentBasedRec import ContentBasedRecommender
+        cbs = ContentBasedRecommender()
+        cbs.load_database()
         st.write("## Content based recommendation")
-
-    case "User based":
-        st.write("## User based recommendation")
+        user = st.selectbox('UserId', (pd.read_csv('data/processed/final_ratings.csv').userId) )
+        level = st.slider("number of recommendations", 1, 20)
+        if(st.button('Submit')):
+            df_rec_cbs = cbs.recommendation(userId= user, number_of_recommendations= level).drop(['movieId','labels'], axis = 1)
+            st.dataframe(df_rec_cbs)
+    case "Collaborative Filtering":
+        st.write("## Collaborative Filtering recommendation")
     
-    case "Hybrid":
+    case "Hybrid recommendation":
+        from model.HybridRecommendationSystem import HybridRecommender
+        hrs = HybridRecommender()
+        hrs.load_database()
         st.write("## Hybrid recommendation")
-    
+        user = st.selectbox('UserId', (pd.read_csv('data/processed/final_ratings.csv').userId) )
+        level = st.slider("number of recommendations", 1, 20)
+        t = st.slider("Threshold", 5, 20)
+        if(st.button('Submit')):
+            df_rec_hrs = hrs.hybrid_recommendation(userId=user, threshold= t, number_of_recommendations= level)
+            st.dataframe(df_rec_hrs)
     case "Conclusion":
         st.write("## Conclusion,  critical view + perspectives (what could have been done if we had 3 more months)")
-"""
-
-"""
