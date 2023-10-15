@@ -128,7 +128,7 @@ class ContentBasedRecommender():
         """
         Predict function
         """
-        # get at 25 movies is user rated more than 25. otherwise all the movies rated by user
+        # get 25 movies if user rated more than 25. otherwise all the movies rated by user
         def get_movies(userId, top):
             # get the movies by userId
             given_movies_ids, all_movies = get_user_movies_by_userid(userId, top)
@@ -194,7 +194,64 @@ class ContentBasedRecommender():
             #return all the recommendations
             recommendations = df_scored.sort_values('score', ascending=False).reset_index()
         return recommendations
-    
+    def recommendation_movies(self, given_movies, lambda_val = np.random.rand(), number_of_recommendations = 0):
+        
+        # Convert the movie lists to a list of integers containing only Movie_Ids
+        from features.search_movieId import search_movieId
+        given_movies_ids = search_movieId(given_movies)
+        
+        # Get rid of the movies not represented in the preprocessed database
+        given_movies_ids = [item for item in given_movies_ids if item in self.df.index.tolist()]
+        
+        # Calculating the mean point (vector) of the given movies
+        mean_point = self.df.loc[given_movies_ids].mean()
+
+
+        ## movie recommendation with cosine similarity
+        
+        from sklearn.metrics.pairwise import cosine_similarity
+        # Get the relevance vector of the given movie
+        given_movie_vector = mean_point.values.reshape(1, -1)
+        # Calculate cosine similarity between the given movie and all other movies
+        
+        similarity_scores = cosine_similarity(self.df.values, given_movie_vector)
+        
+
+        ## Calculate Distances of mean vector to the nearest neighbors
+        
+        # Import and fit the model
+        #nn = sklearn.neighbors.NearestNeighbors(n_neighbors=self.df.shape[0])
+        #nn.fit(self.df)
+        nn = pickle.load(open('model/trained_models/CB_nearest_neighbors.sav', 'rb'))
+        
+        # Getting the distances of any point in the self.df to mean point
+        distances, indices = nn.kneighbors(mean_point.values.reshape(1, -1))
+        # Normalize the data
+        distances = (distances - distances.min()) / (distances.max() - distances.min())
+        # Sorting the distance according to the original index of the self.df
+        distances = distances[0][np.argsort(indices[0])]
+        
+        # Diversification
+        score = pd.Series((similarity_scores.reshape(1, -1) - (lambda_val/4 * distances))[0], name="score")
+
+        # Concatenate scores to the self.df
+        df_scored = pd.concat([self.df_labeled.reset_index(names='movieId'), score.reset_index(drop=True)],
+                            axis=1).set_index('movieId')
+
+        # Remove given movie from the list of recommendation
+        df_scored = df_scored.drop(given_movies_ids)
+        # Removing movies which are not in the same clusters as the given movies
+        given_movies_clusters = self.df_labeled.loc[given_movies_ids, "labels"].unique()
+        df_scored = df_scored[df_scored["labels"].isin(given_movies_clusters)]
+
+        # getting the movies from the ladled set which shows the title and label
+        if number_of_recommendations != 0:
+            recommendations = df_scored.sort_values('score', ascending=False).head(number_of_recommendations).reset_index()
+        else:
+            #return all the recommendations
+            recommendations = df_scored.sort_values('score', ascending=False).reset_index()
+        return recommendations
+        
 def get_CBMatrix():
     """
     getting the Matrix of users and movies with the predicted recommendation score by CB for each user and movie
