@@ -120,7 +120,7 @@ class ContentBasedRecommender():
         self.df = pd.read_csv('./data/processed/df_ContBaseRec.csv')
         self.df.set_index('movieId', inplace=True)
         
-        # Clustering the data and getting the ladled movies dataset
+        # Clustering the data and getting the labeled movies dataset
         #from data_script.Clustering import get_labeledMovies
         #self.df_labeled = get_labeledMovies(self.df, num_clusters)
         self.df_labeled = pd.read_csv('./data/processed/df_labeledMovies.csv')

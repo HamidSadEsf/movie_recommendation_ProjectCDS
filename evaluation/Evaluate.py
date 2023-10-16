@@ -22,17 +22,12 @@ class Evaluate_CFR():
             selection_of_inner_users = np.array(random.sample(all_users, number_of_users))
             for u in selection_of_inner_users:
                 # While computing 10 recommendatiosn for each, count only unique movies
-                recommendations = self.model.recommend(u, number_of_recommendations)
+                recommendations = self.model.recommend(u, 20, 20)
                 movie_list = set(recommendations.movieId.values.tolist())
                 unique_movies = unique_movies | movie_list
             
             var.append(len(sorted(unique_movies)))
         return round(0.001*np.array(var).mean()-0.01,3), round(0.001*np.array(var).std(),3)
-    
-    def Coverage(self):
-        return len(self.model.pred_test) / len(self.testset)
-
-    
     
 class Evaluate():
     def __init__(self):
@@ -48,7 +43,10 @@ class Evaluate():
         self.var_repetitions = 10
         ratings = pd.read_csv('./data/processed/final_ratings.csv')
         self.userIds = ratings.userId.unique().tolist()
+        self.movieIds_cf = ratings.movieId.unique().tolist() # list of all hte movies in the CF system
+        self.movieIds_cb = self.cbr.df.index.to_list() #list of all the movies in the CB system
         self.knn_similarities = None
+        self.random_user = np.random.choice(self.userIds) # picks a random user
      
     def compute_surprise_similarity(self):
         print('...Computing KNN similarity matrix...')
@@ -65,8 +63,8 @@ class Evaluate():
     def compute_prediction_overlap(self, userId_1, userId_2, model_type = 'cf'):
         overlap_array = []
         if model_type == 'cf':
-            rec_1 = set(self.cf_model.recommend(userId_1, 20).movieId.values)
-            rec_2 = set(self.cf_model.recommend(userId_2, 20).movieId.values)
+            rec_1 = set(self.cf_model.recommend(userId_1, n1=20, n2=20).movieId.values)
+            rec_2 = set(self.cf_model.recommend(userId_2, n1=20, n2=20).movieId.values)
         elif model_type == 'cb':
             rec_1 = set(self.cbr.recommendation(userId_1, 20).movieId.values)
             rec_2 = set(self.cbr.recommendation(userId_2, 20).movieId.values)
@@ -88,58 +86,45 @@ class Evaluate():
         return df.sort_values(by=["similarity"]).reset_index(drop=True)
     
     def personalisation(self, model_type):
-        random_user = np.random.choice(self.userIds) # picks a random user
-        df_perso = self.return_similarities(random_user, model_type)
+        df_perso = self.return_similarities(self.random_user, model_type)
         return df_perso
 
-    def variety_collaborative_filtering(self):
-        var = []
+    def variety_collaborative_filtering(self, version = 0):
+        variety = []
         unique_movies = set()
-        for i in range(self.var_repetitions):
-            # Select users randomly
-            selection_of_users = np.array(random.sample(self.userIds, self.variety_nb_users))
-            for u in selection_of_users:
-                # While computing 10 recommendatiosn for each, count only unique movies
-                recommendations = self.cf_model.recommend(u, self.variety_nb_recommendations)
-                movie_list = set(recommendations.movieId.values.tolist())
-                unique_movies = unique_movies | movie_list
-            
-            var.append(len(sorted(unique_movies)))
-        return round(0.001*np.array(var).mean()-0.01,3), round(0.001*np.array(var).std(),3)
+        # Loop through all the users
+        for u in self.userIds:
+            # While computing 10 recommendatiosn for each, count only unique movies
+            recommendations = self.cf_model.recommend(u, n1=10, n2=self.variety_nb_recommendations, version = version)
+            movie_list = set(recommendations.movieId.values.tolist())
+            unique_movies = unique_movies | movie_list
+        variety.append(len(sorted(unique_movies)))
+        return np.array(variety).mean(), round(np.array(variety).mean() * 100 / len(self.movieIds_cf),0)
     
-
     def variety_content_based(self):
         variety = []
         unique_movies = set()
-        for i in range(self.var_repetitions):
-            # Select users randomly
-            selection_of_users =  np.array(random.sample(self.userIds, self.variety_nb_users))
-            for u in selection_of_users:
-                # While computing 10 recommendatiosn for each, count only unique movies
-                recommendations = self.cbr.recommendation(u, self.variety_nb_recommendations)
-                movie_list = set(recommendations.movieId.values.tolist())
-                unique_movies = unique_movies | movie_list
-            
-            variety.append(len(sorted(unique_movies)))
-        return round(0.001*np.array(variety).mean()-0.01,3), round(0.001*np.array(variety).std(),3)
+        # Loop through all the users:
+        for u in self.userIds:
+            # While computing 10 recommendatiosn for each, count only unique movies
+            recommendations = self.cbr.recommendation(u, self.variety_nb_recommendations)
+            movie_list = set(recommendations.movieId.values.tolist())
+            unique_movies = unique_movies | movie_list
+
+        variety.append(len(sorted(unique_movies)))
+        return np.array(variety).mean(), round(np.array(variety).mean() * 100 / len(self.movieIds_cb),0)
     
     def variety_hybrid(self):
         variety = []
         unique_movies = set()
-        for i in range(self.var_repetitions):
-            # Select users randomly
-            selection_of_users =  np.array(random.sample(self.userIds, self.variety_nb_users))
-            for u in selection_of_users:
-                # While computing 10 recommendatiosn for each, count only unique movies
-                recommendations = self.hr.hybrid_recommendation(u, self.variety_nb_recommendations)
-                movie_list = set(recommendations.movieId.values.tolist())
-                unique_movies = unique_movies | movie_list
-            
-            variety.append(len(sorted(unique_movies)))
-        return round(0.001*np.array(variety).mean()-0.01,3), round(0.001*np.array(variety).std(),3)
-    
-    def Coverage(self):
-        return len(self.model.pred_test) / len(self.testset)
+        # Loop through all the users:
+        for u in self.userIds:
+            # While computing 10 recommendatiosn for each, count only unique movies
+            recommendations = self.hr.hybrid_recommendation(u, self.variety_nb_recommendations)
+            movie_list = set(recommendations.movieId.values.tolist())
+            unique_movies = unique_movies | movie_list
+        variety.append(len(sorted(unique_movies)))
+        return np.array(variety).mean(), round(np.array(variety).mean() * 100 / len(self.movieIds_cb),0)
 
         
         
