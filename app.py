@@ -11,7 +11,7 @@ match page:
     case "Introduction":
         st.write("## Introduction")
         from PIL import Image
-        st.image(Image.open('Streamlit_Asset/V01_light.jpg'), caption = 'Movie recommendation system')
+        st.image(Image.open('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/Streamlit_Asset/V01_light.jpg'), caption = 'Movie recommendation system')
         st.write ('A Project by Sviatlana Viarbitskaya & Hamid S. Esfahlani ')
         st.markdown('''---''')
         st.markdown('''In this report we describe and analyze our group effort to develop a weighted and switching hybrid movie recommendation system by means of combining two distinct approaches to developing a recommender - a content-based and user-based collaborative filtering. The goal is to determine and recommend a given amount of movies for each user in the dataset with the aim to sustain and increase the user’s engagement with the recommendation platform. The latter is hoped to be achieved through building a diverse and personalized recommendation system based on user rating history (collaborative filtering), analysis of the items features (content-based) and handling of the cold-start problem. Finally, we analyze the performance of the proposed system and discuss the desirable future developments.''')
@@ -32,16 +32,16 @@ match page:
             st.write('Size on disk: 308 MB')
             st.write('The genome-scores is a structured dataset that stores tag relevance scores for movies. It takes the form of a dense matrix, wherein every movie within the genome is assigned a value corresponding to each tag in the genome.')
             st.write('It serves as a representation of how well movies manifest specific characteristics denoted by tags.')
-            st.dataframe(pd.read_csv('data/external/genome-scores.csv').head(10))
+            st.dataframe(pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/genome-scores.csv').head(10))
         if dataset == 'movies.csv':
             st.write('Size on disk: 1,33 MB')
-            st.dataframe(pd.read_csv('data/external/movies.csv').head(10))
+            st.dataframe(pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/movies.csv').head(10))
         if dataset == 'ratings.csv':
             st.write('Size on disk: 508 MB')
-            st.dataframe(pd.read_csv('data/external/ratings.csv').head(10))
+            st.dataframe(pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/ratings.csv').head(10))
         if dataset == 'tags.csv':
             st.write('Size on disk: 15,8 MB')
-            st.dataframe(pd.read_csv('data/external/tags.csv').head(10))
+            st.dataframe(pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/tags.csv').head(10))
         st.write('You can find detailed information about the files structures and content of the datasets above in the documentation: https://files.grouplens.org/datasets/movielens/ml-20m-README.html')
 
     case 'Visualization':
@@ -56,8 +56,8 @@ match page:
         graph = st.selectbox('visualization', graphs, placeholder='Select a graph')
         if graph == 'Distribution of tag relevance across movie tags':
             st.write('We can see that the average relevance of more than 80% of tags is below 0.2, which is relatively low. But nearly all tags have a max relevance score of over 0.8. This indicates that most of the tags are specialized. Thus a data reduction upon missing relevancy of the tags is not possible. But also we can deduce that the tags offer a good reference to find patterns of similarity between movies which will be the base of the CB modeling.')
-            chart_data_01 = pd.read_csv('data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').mean().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Avg relevance score'})
-            chart_data_02 = pd.read_csv('data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').max().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Max relevance score'})
+            chart_data_01 = pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').mean().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Avg relevance score'})
+            chart_data_02 = pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').max().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Max relevance score'})
             col1, col2,= st.columns(2)
             with col1:
                 st.write("Avg relevance of tags")
@@ -73,7 +73,7 @@ match page:
             st.write(' The graph below shows the strong presence of outliers in our data - users that rated 10 to 100 times more movies than the average user of the MovieLens platform - the so called super users.')
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = pd.read_csv('data/external/ratings.csv').userId.value_counts()
+            df = pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/ratings.csv').userId.value_counts()
             plt.figure(figsize=(20, 1))
             p= sns.boxplot(x=df)
             p.set(title='Distribution of rating amount of users', xlabel='amount of ratings', ylabel='users', xlim=[-50,9500])
@@ -85,7 +85,7 @@ match page:
             st.pyplot(fig)
         if graph == 'Avg rating vs users rating activity':
             st.write('The distribution exhibits a significant bias in the ratings styles of different users, extremes being users whose average rating is below 2 and above 4. Interestingly, it is the super users that tend to show the largest bias, while a casual user mean rating tends to show the least bias. The effect of this bias will be discussed in the corresponding modeling section.')
-            df_rating = pd.read_csv('data/external/ratings.csv')
+            df_rating = pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/ratings.csv')
             UserAvgRating = df_rating.groupby('userId').agg({'rating':['mean','count']})
             UserAvgRating.columns = ['Avg rating of user', 'users rating frequency']
             UserAvgRating = UserAvgRating[UserAvgRating['users rating frequency']<2000]
