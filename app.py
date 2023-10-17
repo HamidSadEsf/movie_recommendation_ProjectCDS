@@ -1,63 +1,141 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import base64
+from PIL import Image
 
-st.title('Movie Recommendation System App')
+@st.cache_data()
+def get_base64_of_bin_file(bin_file):
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
 
-pages = ['Introduction', 'Datasets', 'Visualization', 'Preprocessing', 'Content based recommendation', 'Collaborative Filtering', 'Hybrid recommendation', 'Conclusion']
+def set_png_as_page_bg(png_file):
+    bin_str = get_base64_of_bin_file(png_file)
+    page_bg_img = '''
+    <style>
+    section.main {
+    background-image: url("data:image/png;base64,%s");
+    background-size: cover;
+    color: white;
+    }
+
+    section.main div{
+        color: white !important;
+    }
+
+    h1, h2, h3, h4, p
+        color: white !important;
+    }
+    p, ol, ul, dl, li, li::marker {
+        font-size: 1.3rem !important;
+    }
+    </style>
+
+    ''' % bin_str
+    
+    st.markdown(page_bg_img, unsafe_allow_html=True)
+    return
+
+set_png_as_page_bg('Streamlit_Asset/V01_Dark.jpg')
+
+
+st.title('Movie Recommendations')
+st.write ('A Project by Sviatlana Viarbitskaya & Hamid S. Esfahlani ')
+
+pages = ['Introduction', 'Objectives', 'Datasets', 'Targets and variables', 'Data limitations','Preprocessing', 'Visualization',  'Content based recommendation', 'Collaborative Filtering', 'Hybrid recommendation', 'Conclusion']
 page = st.sidebar.radio('Go to', pages)
 
 match page:
     case "Introduction":
+
         st.write("## Introduction")
-        from PIL import Image
-        st.image(Image.open('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/Streamlit_Asset/V01_light.jpg'), caption = 'Movie recommendation system')
-        st.write ('A Project by Sviatlana Viarbitskaya & Hamid S. Esfahlani ')
-        st.markdown('''---''')
-        st.markdown('''In this report we describe and analyze our group effort to develop a weighted and switching hybrid movie recommendation system by means of combining two distinct approaches to developing a recommender - a content-based and user-based collaborative filtering. The goal is to determine and recommend a given amount of movies for each user in the dataset with the aim to sustain and increase the user’s engagement with the recommendation platform. The latter is hoped to be achieved through building a diverse and personalized recommendation system based on user rating history (collaborative filtering), analysis of the items features (content-based) and handling of the cold-start problem. Finally, we analyze the performance of the proposed system and discuss the desirable future developments.''')
-        st.subheader('''Objectives''')
+
+        #from PIL import Image
+        #st.image(Image.open('Streamlit_Asset/V01_light.jpg'), caption = 'Movie recommendation system')
+
+        #st.markdown('''---''')
+        st.markdown("### A  recommendation system:")
         st.markdown('''
-                    - Understand and implement the two concepts of content-based and user-based collaborative filtering in two different engines.
-                    - Develop a hybrid movie recommendation system that combines these two engines to provide more diverse and still accurate recommendations.
-                    - Evaluate the effectiveness of the hybrid recommendation system through quantitative metrics such as accuracy, diversity and personalisation.
-                    ''')
-        
+            - provides personalized recommendations
+            - predicts user preferences
+            - helps user to discover products, service, content etc.
+            ''')
+        st.markdown("### Types of recommenders:")
+        st.image(Image.open('Streamlit_Asset/recommenders.png'), caption = 'Type of Recommenders')
+
+        # st.markdown(
+        #     """
+        #     <style>
+        #     section.main {
+        #         background: url("Streamlit_Asset/V01_light.jpg")
+        #     }
+        #     </style>
+        #     """,
+        #     unsafe_allow_html=True
+        # )
+    case "Objectives":
+        st.write("## Objectives")
+        st.markdown('''
+            - Understand and implement the two concepts of content-based (CB) and user-based collaborative filtering (CF) in two different engines.
+            - Develop a hybrid movie recommendation system that combines these two engines to provide more diverse and still accurate recommendations.
+            - Evaluate the effectiveness of the hybrid recommendation system through quantitative metrics such as accuracy, diversity and personalisation.
+            ''')
+
     case "Datasets":
-        st.write('We utilized 20M dataset of the MovieLens database (https://grouplens.org/datasets/movielens/20m/). This database contains extensive information about movies and user behavior and is freely available for academic and research purposes.')
-        st.write('The dataset contains 20000263 ratings and 465564 tag applications across 27278 movies. These data were created by 138493 users between January 09, 1995 and March 31, 2015. This dataset was generated on October 17, 2016.')
-        st.write('We used only the following datasets :')
+        st.write("## Datasets")
+        st.write('''
+            - 20M dataset of the MovieLens database
+            - 20000263 ratings and 465564 tag applications across 27278 movies
+            - 138493 users between January 09, 1995 and March 31, 2015.
+            ''')
+        
         datasets = ['genome-scores.csv', 'movies.csv', 'ratings.csv', 'tags.csv']
         dataset = st.radio('Choose the dataset to get a snippet', datasets, horizontal=True)
         if dataset == 'genome-scores.csv':
             st.write('Size on disk: 308 MB')
-            st.write('The genome-scores is a structured dataset that stores tag relevance scores for movies. It takes the form of a dense matrix, wherein every movie within the genome is assigned a value corresponding to each tag in the genome.')
-            st.write('It serves as a representation of how well movies manifest specific characteristics denoted by tags.')
-            st.dataframe(pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/genome-scores.csv').head(10))
+            #st.write('The genome-scores is a structured dataset that stores tag relevance scores for movies. It takes the form of a dense matrix, wherein every movie within the genome is assigned a value corresponding to each tag in the genome.')
+            #st.write('It serves as a representation of how well movies manifest specific characteristics denoted by tags.')
+            st.dataframe(pd.read_csv('data/external/genome-scores.csv').head(10))
         if dataset == 'movies.csv':
             st.write('Size on disk: 1,33 MB')
-            st.dataframe(pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/movies.csv').head(10))
+            st.dataframe(pd.read_csv('data/external/movies.csv').head(10))
         if dataset == 'ratings.csv':
             st.write('Size on disk: 508 MB')
-            st.dataframe(pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/ratings.csv').head(10))
+            st.dataframe(pd.read_csv('data/external/ratings.csv').head(10))
         if dataset == 'tags.csv':
             st.write('Size on disk: 15,8 MB')
-            st.dataframe(pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/tags.csv').head(10))
-        st.write('You can find detailed information about the files structures and content of the datasets above in the documentation: https://files.grouplens.org/datasets/movielens/ml-20m-README.html')
+            st.dataframe(pd.read_csv('data/external/tags.csv').head(10))
+    case "Targets and variables":
+        st.write("## Targets and Variables")
+        st.write("### Content-based")
+        st.write("**Features:** tags, release year, movie genres")
+        st.write("**Target:** none")
+        st.write("### Collaborative filtering")
+        st.write("No clear distinction does not exist between target variables and feature variables because each feature plays the dual role of a dependent and independent variable.")
+
+    case "Data limitations":
+        st.write("## Data limitations")
+        st.markdown('''
+            - Very uneven user interactions throughout the period of data acquition
+            - A large portion of movies is not properly tagged
+            - High sparsity of the rating matrix
+            ''')
 
     case 'Visualization':
-        st.write('Data visualization')
+        st.write("## Data visualization")
         st.write('Below we present some visualizations that informed the modeling part of the project. ')
         graphs=['Distribution of tag relevance across movie tags',
-                'Distribution of rating amount according to genre',
-                'Distribution of rating amount among users',
+                'Distribution of rating amount according to genre (CB)',
+                'Distribution of rating amount among users (CF)',
                 'Avg rating vs users rating activity',
                 'Long-tail graphs'
                 ]
         graph = st.selectbox('visualization', graphs, placeholder='Select a graph')
         if graph == 'Distribution of tag relevance across movie tags':
             st.write('We can see that the average relevance of more than 80% of tags is below 0.2, which is relatively low. But nearly all tags have a max relevance score of over 0.8. This indicates that most of the tags are specialized. Thus a data reduction upon missing relevancy of the tags is not possible. But also we can deduce that the tags offer a good reference to find patterns of similarity between movies which will be the base of the CB modeling.')
-            chart_data_01 = pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').mean().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Avg relevance score'})
-            chart_data_02 = pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').max().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Max relevance score'})
+            chart_data_01 = pd.read_csv('data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').mean().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Avg relevance score'})
+            chart_data_02 = pd.read_csv('data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').max().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Max relevance score'})
             col1, col2,= st.columns(2)
             with col1:
                 st.write("Avg relevance of tags")
@@ -73,7 +151,7 @@ match page:
             st.write(' The graph below shows the strong presence of outliers in our data - users that rated 10 to 100 times more movies than the average user of the MovieLens platform - the so called super users.')
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/ratings.csv').userId.value_counts()
+            df = pd.read_csv('data/external/ratings.csv').userId.value_counts()
             plt.figure(figsize=(20, 1))
             p= sns.boxplot(x=df)
             p.set(title='Distribution of rating amount of users', xlabel='amount of ratings', ylabel='users', xlim=[-50,9500])
@@ -85,7 +163,7 @@ match page:
             st.pyplot(fig)
         if graph == 'Avg rating vs users rating activity':
             st.write('The distribution exhibits a significant bias in the ratings styles of different users, extremes being users whose average rating is below 2 and above 4. Interestingly, it is the super users that tend to show the largest bias, while a casual user mean rating tends to show the least bias. The effect of this bias will be discussed in the corresponding modeling section.')
-            df_rating = pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/ratings.csv')
+            df_rating = pd.read_csv('data/external/ratings.csv')
             UserAvgRating = df_rating.groupby('userId').agg({'rating':['mean','count']})
             UserAvgRating.columns = ['Avg rating of user', 'users rating frequency']
             UserAvgRating = UserAvgRating[UserAvgRating['users rating frequency']<2000]
@@ -95,29 +173,24 @@ match page:
             st.write('The small fraction of movies present in the data set has experienced a significant interaction. This fact is reflected in the high sparsity of the original and processed data. The presence of a long-tail is a challenge for a collaborative filtering recommendation system that wants to be diverse and personalized: the strong presence of popular items will result in that the system will recommend the same popular movies to all the users.')
             
     case "Preprocessing":
-        st.write("## data preparation pipeline")
-        st.write('To enrich our movie information, we added release year and genres as categorical values to the dataset.')
-        model = st.radio('Choose the model', ['Content based recommendation', 'Collaborative filtering recommendation'], horizontal=True)
-        if model == 'Content based recommendation':
-            st.write('# Cleaning and processing the data')
-            st.write('The genome scores dataset (genome-scores.csv) provides a clear and NaN-less dataset as a matrix. To be able to process the data, we pivot the data frame so each row represents a movie and the columns the tags, as can be seen in the figure below.')
+        st.write("## Preprocessing")
+        model = st.radio('Choose the model', ['Content-based', 'Collaborative filtering'], horizontal=True)
+        if model == 'Content-based':
+            st.markdown('''
+                - Pivot genome scores dataframe to obtain a dense matrix containing a score (0-1) between each movie and each tag
+                - Add release year from movies dataset and normalize it
+                - Add 20 genres
+                ''')
             st.dataframe(pd.read_csv('data/processed/df_ContBaseRec.csv').head(5))
-            st.write('The result is a dense matrix containing a score between each movie and each tag. The score is a float between 0-1.')
-            st.write('In a further step we added the release year and genres as columns to this data set. These two values had to be extracted from the movies.csv. The release year had to be extracted from the title of each movie. The format of the titles is not always consistent. So some manual problem detection and adjustments had to be made, in order to extract all release years accurately.')
-            st.write('The 20 different genres were integrated into the matrix as an indicator variable for each genre. In other words 20 columns were added to the final dataframe, each representing a genre.')
-            st.write('# Normalization/standardization of data')
-            st.write('Since all the values in the gnome matrix are distributed between 0-1, we had to normalize our additional data, namely genres and release year. Genres were presented as indicator variables of 0 and 1. So there was no need for normalization. Release year is a continuous variable between 1890 and 2015. To be able to integrate these values into our matrix we normalized the release year by applying a min–max normalization.')
-            st.write('# Dimension reduction')
-            st.write('No dimension reduction was applied, since the provided gnome dataset already effectively reduces the amount of movies. However, in a further process of interpreting the model, a feature reduction seemed to be necessary due to the amount of features and the computational time of the model interpretation models, which was discarded, since the  PCA, which was the preferred dimension reduction method, doesn’t allow us to identify the importance of the original Features.')
-        if model == 'Collaborative filtering recommendation':  
-            st.write('# Cleaning and processing the data')
-            st.write('The ratings data set is originally clean and without duplicates. After having filtered the movies that are not present in the genome-score dataset, we proceeded with further shrinking the user base down to 1000 users. This number approximately corresponds to a maximal number of users for which the collaborative filtering algorithms could have been run locally without crashing the Anaconda application. Additionally, we added 2 users corresponding to Sviatlana and Hamid (the ratings could have been downloaded from the corresponding profiles on the MovieLens website), and 2 users corresponding to fixious users with the tastes opposite that of Sviatlana and Hamid, thus resulting in 1004 user base.')
-            st.write('Following these operations, the corresponding movie base has been reduced significantly (movies that have not been ranked by these reduced set users are not taken into account during the modeling stages). Finally, we removed the movies that have been rated less than 100 times, resulting in about 600 movies in the final rating matrix.')
-            st.write('Such reduced ratings dataset can be directly used for modeling with the Surprise collaborative filtering library.')
-            st.write('# Normalization/standardization of data')
-            st.write('The ratings matrix is a sparse matrix and contains the values of ratings ranging from 0.5 till 5. Since we are using the Surprise library, no preliminary normalization or standardization of the data is necessary? However, certain tasted algorithms would perform the data transformation internally, e.g the KNNWithMeans algorithm would normalize each user’s ranking to its mean, thus reducing rating biases in the original data.')
-            st.write('# Dimension reduction')
-            st.write('The final version of the user-based collaborative filtering indeed uses the matrix-factorization based SVD algorithm, which computes the finite number of latent factors for computation of user similarities. This technique can be considered as dimension reduction technique. The main reason for using SVD in this project is because it is quicker than KNN based algorithms, while its accuracy is comparable to the latter.')
+        if model == 'Collaborative filtering':  
+            st.markdown('''
+                - The user base was reduced to 1000 users (plus 4 additional users for a total of 1004).
+                - Movies that received less than 100 ratings were removed, resulting in about 600 movies in the final rating matrix.
+                - The ratings matrix contains values ranging from 0.5 to 5.
+                ''')
+            st.write('final_ratings.csv')
+            st.dataframe(pd.read_csv('data/processed/final_ratings.csv').tail(5))
+            
     case "Content based recommendation":
         from model.ContentBasedRec import ContentBasedRecommender
         cbs = ContentBasedRecommender()
