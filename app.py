@@ -19,17 +19,19 @@ def set_png_as_page_bg(png_file):
     background-size: cover;
     color: white;
     }
-
-    section.main div{
+    section.main .st-dj{
+        color: black !important;
+    }
+    section.main .st-cj, section.main .st-ch{
         color: white !important;
     }
-
-    h1, h2, h3, h4, p
+    h1, h2, h3, h4, p{
         color: white !important;
     }
-    p, ol, ul, dl, li, li::marker {
+    p, ol, ul, dl, li{
         font-size: 1.3rem !important;
     }
+
     </style>
 
     ''' % bin_str
@@ -37,8 +39,10 @@ def set_png_as_page_bg(png_file):
     st.markdown(page_bg_img, unsafe_allow_html=True)
     return
 
-set_png_as_page_bg('Streamlit_Asset/V01_Dark.jpg')
+set_png_as_page_bg('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/Streamlit_Asset/V01_Dark.jpg')
 
+path = '/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/'
+#path = ''
 
 st.title('Movie Recommendations')
 st.write ('A Project by Sviatlana Viarbitskaya & Hamid S. Esfahlani ')
@@ -62,7 +66,7 @@ match page:
             - helps user to discover products, service, content etc.
             ''')
         st.markdown("### Types of recommenders:")
-        st.image(Image.open('Streamlit_Asset/recommenders.png'), caption = 'Type of Recommenders')
+        st.image(Image.open(path + 'Streamlit_Asset/recommenders.png'), caption = 'Type of Recommenders')
 
         # st.markdown(
         #     """
@@ -96,16 +100,16 @@ match page:
             st.write('Size on disk: 308 MB')
             #st.write('The genome-scores is a structured dataset that stores tag relevance scores for movies. It takes the form of a dense matrix, wherein every movie within the genome is assigned a value corresponding to each tag in the genome.')
             #st.write('It serves as a representation of how well movies manifest specific characteristics denoted by tags.')
-            st.dataframe(pd.read_csv('data/external/genome-scores.csv').head(10))
+            st.dataframe(pd.read_csv(path + 'data/external/genome-scores.csv', nrows=10))
         if dataset == 'movies.csv':
             st.write('Size on disk: 1,33 MB')
-            st.dataframe(pd.read_csv('data/external/movies.csv').head(10))
+            st.dataframe(pd.read_csv(path + 'data/external/movies.csv', nrows=10))
         if dataset == 'ratings.csv':
             st.write('Size on disk: 508 MB')
-            st.dataframe(pd.read_csv('data/external/ratings.csv').head(10))
+            st.dataframe(pd.read_csv(path + 'data/external/ratings.csv', nrows=10))
         if dataset == 'tags.csv':
             st.write('Size on disk: 15,8 MB')
-            st.dataframe(pd.read_csv('data/external/tags.csv').head(10))
+            st.dataframe(pd.read_csv(path + 'data/external/tags.csv', nrows=10))
     case "Targets and variables":
         st.write("## Targets and Variables")
         st.write("### Content-based")
@@ -125,17 +129,17 @@ match page:
     case 'Visualization':
         st.write("## Data visualization")
         st.write('Below we present some visualizations that informed the modeling part of the project. ')
-        graphs=['Distribution of tag relevance across movie tags',
+        graphs=['Distribution of tag relevance across movie tags (CB)',
                 'Distribution of rating amount according to genre (CB)',
                 'Distribution of rating amount among users (CF)',
-                'Avg rating vs users rating activity',
+                'Average rating vs users rating activity (CF)',
                 'Long-tail graphs'
                 ]
-        graph = st.selectbox('visualization', graphs, placeholder='Select a graph')
-        if graph == 'Distribution of tag relevance across movie tags':
-            st.write('We can see that the average relevance of more than 80% of tags is below 0.2, which is relatively low. But nearly all tags have a max relevance score of over 0.8. This indicates that most of the tags are specialized. Thus a data reduction upon missing relevancy of the tags is not possible. But also we can deduce that the tags offer a good reference to find patterns of similarity between movies which will be the base of the CB modeling.')
-            chart_data_01 = pd.read_csv('data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').mean().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Avg relevance score'})
-            chart_data_02 = pd.read_csv('data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').max().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Max relevance score'})
+        graph = st.selectbox('Select a graph', graphs)
+        if graph == 'Distribution of tag relevance across movie tags (CB)':
+            st.write('The tags exhibit varying relevance scores, with most averaging below 0.2 but having high maximum relevance scores, suggesting their specialization and importance in identifying patterns of similarity for content-based modeling in movie recommendations.')
+            chart_data_01 = pd.read_csv(path + 'data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').mean().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Avg relevance score'})
+            chart_data_02 = pd.read_csv(path + 'data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').max().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Max relevance score'})
             col1, col2,= st.columns(2)
             with col1:
                 st.write("Avg relevance of tags")
@@ -145,13 +149,13 @@ match page:
                 st.line_chart(chart_data_02, y='Max relevance score', x='Tags')
                
  
-        if graph == 'Distribution of rating amount according to genre':
-            st.write('The juxtaposition of these graphs shows that the user interaction within certain genres is higher than others and doesn’t directly relate to the Movie count of that genre. This indicates certain niches of high user interaction, i.a. Sci-Fi. While genres with great movie count contain also a lot of movies with low interaction. This conclusion led us to precluster our data before training it on a ML model.Also, the genre specific difference in interaction led to the integration of genres as features for the CB Model.')
-        if graph == 'Distribution of rating amount among users':
+        if graph == 'Distribution of rating amount according to genre (CB)':
+            st.write("The graphs reveal that user interaction in various genres isn't solely dependent on movie counts, leading to data preclustering and the inclusion of genres as features in the content-based model to capture genre-specific differences in user engagement.")
+        if graph == 'Distribution of rating amount among users (CF)':
             st.write(' The graph below shows the strong presence of outliers in our data - users that rated 10 to 100 times more movies than the average user of the MovieLens platform - the so called super users.')
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = pd.read_csv('data/external/ratings.csv').userId.value_counts()
+            df = pd.read_csv(path + 'data/external/ratings.csv').userId.value_counts()
             plt.figure(figsize=(20, 1))
             p= sns.boxplot(x=df)
             p.set(title='Distribution of rating amount of users', xlabel='amount of ratings', ylabel='users', xlim=[-50,9500])
@@ -161,17 +165,16 @@ match page:
             p.set(xlim=(0,350), xticks=range(0,350,10))
             fig = p.get_figure()
             st.pyplot(fig)
-        if graph == 'Avg rating vs users rating activity':
-            st.write('The distribution exhibits a significant bias in the ratings styles of different users, extremes being users whose average rating is below 2 and above 4. Interestingly, it is the super users that tend to show the largest bias, while a casual user mean rating tends to show the least bias. The effect of this bias will be discussed in the corresponding modeling section.')
-            df_rating = pd.read_csv('data/external/ratings.csv')
+        if graph == 'Average rating vs users rating activity (CF)':
+            st.write('The distribution displays notable rating style biases, particularly among "super users," with extremes in average ratings below 2 and above 4, while casual users exhibit the least bias.')
+            df_rating = pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/ratings.csv')
             UserAvgRating = df_rating.groupby('userId').agg({'rating':['mean','count']})
             UserAvgRating.columns = ['Avg rating of user', 'users rating frequency']
             UserAvgRating = UserAvgRating[UserAvgRating['users rating frequency']<2000]
             st.scatter_chart(UserAvgRating, y='Avg rating of user', x='users rating frequency')
         if graph == 'Long-tail graphs':
-            st.write('The long-tail graphs show the distribution of ratings among movies in the original and preprocessed ratings dataset. Movies on the left side are called as popular because their popularity is higher than those in long-tail areas. We can see the original data contains a large number of unpopular movies and only a fraction of movies receive a significant number of ratings from users. The situation is very different for the case of the typical reduced ratings dataset. While we can still identify popular and unpopular items, the difference between them is less striking.')
-            st.write('The small fraction of movies present in the data set has experienced a significant interaction. This fact is reflected in the high sparsity of the original and processed data. The presence of a long-tail is a challenge for a collaborative filtering recommendation system that wants to be diverse and personalized: the strong presence of popular items will result in that the system will recommend the same popular movies to all the users.')
-            
+            st.write("The dataset's small fraction of movies received substantial interaction, leading to high sparsity in both the original and processed data. The presence of a long-tail poses a challenge for collaborative filtering recommendation systems as it can lead to recommending the same popular movies to all users, limiting diversity and personalization.")
+            st.image(Image.open(path + 'Streamlit_Asset/long-tail.png'), caption = 'Long-tail graphs')
     case "Preprocessing":
         st.write("## Preprocessing")
         model = st.radio('Choose the model', ['Content-based', 'Collaborative filtering'], horizontal=True)
@@ -181,7 +184,7 @@ match page:
                 - Add release year from movies dataset and normalize it
                 - Add 20 genres
                 ''')
-            st.dataframe(pd.read_csv('data/processed/df_ContBaseRec.csv').head(5))
+            st.dataframe(pd.read_csv(path + 'data/processed/df_ContBaseRec.csv', nrows = 5))
         if model == 'Collaborative filtering':  
             st.markdown('''
                 - The user base was reduced to 1000 users (plus 4 additional users for a total of 1004).
@@ -189,7 +192,7 @@ match page:
                 - The ratings matrix contains values ranging from 0.5 to 5.
                 ''')
             st.write('final_ratings.csv')
-            st.dataframe(pd.read_csv('data/processed/final_ratings.csv').tail(5))
+            st.dataframe(pd.read_csv(path + 'data/processed/final_ratings.csv', nrows = 5, usecols = ['userId','movieId','rating'] ))
             
     case "Content based recommendation":
         from model.ContentBasedRec import ContentBasedRecommender
@@ -198,14 +201,14 @@ match page:
         st.write("## Content Based recommendation")
         status = st.radio("Based on: ", ('UserId', 'Movies'))
         if(status== "UserId"):
-            user = st.selectbox('UserId', (pd.read_csv('data/processed/final_ratings.csv').userId) )
+            user = st.selectbox('UserId', (pd.read_csv(path + 'data/processed/final_ratings.csv').userId) )
             level = st.slider("number of recommendations", 1, 20)
             if(st.button('Submit')):
                 df_rec_cbs = cbs.recommendation(userId= user, number_of_recommendations= level).drop(['movieId','labels'], axis = 1)
                 df_rec_cbs.index = pd.RangeIndex(1, level+1)
                 st.dataframe(df_rec_cbs)
         else:
-            movies = st.multiselect('Enter your movies', (pd.read_csv('data/processed/df_labeledMovies.csv').title) )
+            movies = st.multiselect('Enter your movies', (pd.read_csv(path + 'data/processed/df_labeledMovies.csv').title) )
             level = st.slider("number of recommendations", 1, 20)
             if(st.button('Submit')):
                 df_rec_cbs = cbs.recommendation_movies(given_movies= movies, number_of_recommendations= level).drop(['movieId','labels'], axis = 1)
@@ -217,11 +220,11 @@ match page:
         cfr = CollaborativeFilteringRecommender()
         cfr.fit_and_predict()
         st.write("## Collaborative Filtering recommendation")
-        user = st.selectbox('UserId', (pd.read_csv('data/processed/final_ratings.csv').userId) )
+        user = st.selectbox('UserId', (pd.read_csv(path + 'data/processed/final_ratings.csv').userId) )
         level = st.slider("number of recommendations", 1, 20)
         if(st.button('Submit')):
             df_rec_cfr = cfr.recommend(user, level).drop(['userId'], axis = 1)
-            df_rec_cfr = df_rec_cfr.merge(pd.read_csv('data/external/movies.csv'), on='movieId').drop(['movieId'], axis = 1)
+            df_rec_cfr = df_rec_cfr.merge(pd.read_csv(path + 'data/external/movies.csv'), on='movieId').drop(['movieId'], axis = 1)
             df_rec_cfr.index = pd.RangeIndex(1, level+1)
             st.dataframe(df_rec_cfr)
     case "Hybrid recommendation":
@@ -229,7 +232,7 @@ match page:
         hrs = HybridRecommender()
         hrs.load_datasets()
         st.write("## Hybrid recommendation")
-        user = st.selectbox('UserId', (pd.read_csv('data/processed/final_ratings.csv').userId) )
+        user = st.selectbox('UserId', (pd.read_csv(path + 'data/processed/final_ratings.csv').userId) )
         level = st.slider("number of recommendations", 1, 20)
         t = st.slider("Threshold", 5, 20)
         if(st.button('Submit')):
