@@ -47,7 +47,22 @@ path = '/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/'
 st.title('Movie Recommendations')
 st.write ('A Project by Sviatlana Viarbitskaya & Hamid S. Esfahlani ')
 
-pages = ['Introduction', 'Objectives', 'Datasets', 'Targets and variables', 'Data limitations','Preprocessing', 'Visualization',  'Content based recommendation', 'Collaborative Filtering', 'Hybrid recommendation', 'Conclusion']
+pages = [
+    'Introduction',
+    'Objectives',
+    'Datasets',
+    'Targets and variables',
+    'Data limitations',
+    'Preprocessing',
+    'Visualization',
+    'Pipeline: Content-based',
+    'Pipeline: Collaborative-filtering',
+    'Pipeline: Hybrid',
+    'Content-based recommendation demo',
+    'Collaborative filtering demo',
+    'Hybrid recommendation demo',
+    'Interpretation and evaluation',
+    'Conclusion']
 page = st.sidebar.radio('Go to', pages)
 
 match page:
@@ -193,12 +208,17 @@ match page:
                 ''')
             st.write('final_ratings.csv')
             st.dataframe(pd.read_csv(path + 'data/processed/final_ratings.csv', nrows = 5, usecols = ['userId','movieId','rating'] ))
-            
-    case "Content based recommendation":
+    case "Pipeline: Content-based":
+        st.write("## Pipeline: Content-based")
+    case 'Pipeline: Collaborative-filtering':
+        st.write("## Pipeline: Collaborative-filtering")
+    case 'Pipeline: Hybrid':
+        st.write("## Pipeline: Hybrid")  
+    case "Content-based recommendation demo":
+        st.write("## Content Based recommendation demo")
         from model.ContentBasedRec import ContentBasedRecommender
         cbs = ContentBasedRecommender()
         cbs.load_database()
-        st.write("## Content Based recommendation")
         status = st.radio("Based on: ", ('UserId', 'Movies'))
         if(status== "UserId"):
             user = st.selectbox('UserId', (pd.read_csv(path + 'data/processed/final_ratings.csv').userId) )
@@ -215,10 +235,11 @@ match page:
                 df_rec_cbs.index = pd.RangeIndex(1, level+1)
                 st.dataframe(df_rec_cbs)
         
-    case "Collaborative Filtering":
+    case "Collaborative filtering demo":
+        st.write("## Collaborative Filtering Demo")
+
         from model.CollaborativeFilteringRec import CollaborativeFilteringRecommender
         cfr = CollaborativeFilteringRecommender()
-        st.write("## Collaborative Filtering recommendation")
         user = st.selectbox('UserId', (pd.read_csv('data/processed/final_ratings.csv').userId) )
         level = st.slider("number of recommendations", 1, 20)
         if(st.button('Submit')):
@@ -226,11 +247,11 @@ match page:
             df_rec_cfr = df_rec_cfr.merge(pd.read_csv('data/external/movies.csv'), on='movieId').drop(['movieId'], axis = 1)
             df_rec_cfr.index = pd.RangeIndex(1, level+1)
             st.dataframe(df_rec_cfr)
-    case "Hybrid recommendation":
+    case "Hybrid recommendation demo":
+        st.write("## Hybrid recommendation demo")
         from model.HybridRecommendationSystem import HybridRecommender
         hrs = HybridRecommender()
         hrs.load_datasets()
-        st.write("## Hybrid recommendation")
         user = st.selectbox('UserId', (pd.read_csv('data/processed/final_ratings.csv').userId) )
         level = st.slider("number of recommendations", 1, 20)
         t = st.slider("Threshold", 5, 20)
@@ -238,5 +259,7 @@ match page:
             df_rec_hrs = hrs.hybrid_recommendation(userId=user, threshold= t, number_of_recommendations= level).drop(['movieId'], axis = 1)
             df_rec_hrs.index = pd.RangeIndex(1, level+1)
             st.dataframe(df_rec_hrs)
+    case "Interpretation and Evaluation":
+         st.write("## Interpretation and Evaluation") 
     case "Conclusion":
         st.write("## Conclusion,  critical view + perspectives (what could have been done if we had 3 more months)")
