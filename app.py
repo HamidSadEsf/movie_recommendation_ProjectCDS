@@ -218,13 +218,12 @@ match page:
     case "Collaborative Filtering":
         from model.CollaborativeFilteringRec import CollaborativeFilteringRecommender
         cfr = CollaborativeFilteringRecommender()
-        cfr.fit_and_predict()
         st.write("## Collaborative Filtering recommendation")
-        user = st.selectbox('UserId', (pd.read_csv(path + 'data/processed/final_ratings.csv').userId) )
+        user = st.selectbox('UserId', (pd.read_csv('data/processed/final_ratings.csv').userId) )
         level = st.slider("number of recommendations", 1, 20)
         if(st.button('Submit')):
-            df_rec_cfr = cfr.recommend(user, level).drop(['userId'], axis = 1)
-            df_rec_cfr = df_rec_cfr.merge(pd.read_csv(path + 'data/external/movies.csv'), on='movieId').drop(['movieId'], axis = 1)
+            df_rec_cfr = cfr.recommend(user, level, level).drop(['userId'], axis = 1)
+            df_rec_cfr = df_rec_cfr.merge(pd.read_csv('data/external/movies.csv'), on='movieId').drop(['movieId'], axis = 1)
             df_rec_cfr.index = pd.RangeIndex(1, level+1)
             st.dataframe(df_rec_cfr)
     case "Hybrid recommendation":
@@ -232,7 +231,7 @@ match page:
         hrs = HybridRecommender()
         hrs.load_datasets()
         st.write("## Hybrid recommendation")
-        user = st.selectbox('UserId', (pd.read_csv(path + 'data/processed/final_ratings.csv').userId) )
+        user = st.selectbox('UserId', (pd.read_csv('data/processed/final_ratings.csv').userId) )
         level = st.slider("number of recommendations", 1, 20)
         t = st.slider("Threshold", 5, 20)
         if(st.button('Submit')):
