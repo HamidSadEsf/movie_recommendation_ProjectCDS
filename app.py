@@ -25,6 +25,12 @@ def set_png_as_page_bg(png_file):
     section.main .st-cj, section.main .st-ch{
         color: white !important;
     }
+    section.main .st-bg {
+        background: transparent;
+    }
+    section.main .st-bg::hover {
+        color: red;
+    }
     h1, h2, h3, h4, p{
         color: white !important;
     }
@@ -53,11 +59,10 @@ pages = [
     'Datasets',
     'Targets and variables',
     'Data limitations',
-    'Preprocessing',
     'Visualization',
-    'Pipeline: Content-based',
-    'Pipeline: Collaborative-filtering',
-    'Pipeline: Hybrid',
+    'Pipeline: content-based',
+    'Pipeline: collaborative-filtering',
+    'Pipeline: hybrid',
     'Content-based recommendation demo',
     'Collaborative filtering demo',
     'Hybrid recommendation demo',
@@ -106,7 +111,8 @@ match page:
         st.write('''
             - 20M dataset of the MovieLens database
             - 20000263 ratings and 465564 tag applications across 27278 movies
-            - 138493 users between January 09, 1995 and March 31, 2015.
+            - 138493 users between January 09, 1995 and March 31, 2015
+            - The ratings matrix contains values ranging from 0.5 to 5
             ''')
         
         datasets = ['genome-scores.csv', 'movies.csv', 'ratings.csv', 'tags.csv']
@@ -190,29 +196,79 @@ match page:
         if graph == 'Long-tail graphs':
             st.write("The dataset's small fraction of movies received substantial interaction, leading to high sparsity in both the original and processed data. The presence of a long-tail poses a challenge for collaborative filtering recommendation systems as it can lead to recommending the same popular movies to all users, limiting diversity and personalization.")
             st.image(Image.open(path + 'Streamlit_Asset/long-tail.png'), caption = 'Long-tail graphs')
-    case "Preprocessing":
-        st.write("## Preprocessing")
-        model = st.radio('Choose the model', ['Content-based', 'Collaborative filtering'], horizontal=True)
-        if model == 'Content-based':
+    case "Pipeline: content-based":
+        st.write("## Pipeline: Content-based")
+        tab1, tab2, tab3, tab4 = st.tabs(["Preprocessing", "Model", "Interpretation", "Evaluation"])
+
+        with tab1:
             st.markdown('''
                 - Pivot genome scores dataframe to obtain a dense matrix containing a score (0-1) between each movie and each tag
                 - Add release year from movies dataset and normalize it
                 - Add 20 genres
                 ''')
             st.dataframe(pd.read_csv(path + 'data/processed/df_ContBaseRec.csv', nrows = 5))
-        if model == 'Collaborative filtering':  
+
+        with tab2:
+            st.markdown('''
+                - Clustering with KMeans
+                - Nearest Neighbors
+            ''')
+            
+        with tab3:
+            st.markdown('''
+                - Efforts to interpret the model using SHAP were hindered by unresolved errors
+                - An alternative approach proved computationally prohibitive due to resource constraints
+            ''')
+        with tab4:
+            st.markdown('''
+                - Coverage : over 90%!
+                - Personalization : ...
+            ''')
+           
+    case 'Pipeline: collaborative-filtering':
+        st.write("## Pipeline: collaborative-filtering")
+
+        tab1, tab2, tab3, tab4 = st.tabs(["Preprocessing", "Model selection", "Model tuning", "Evaluation"])
+
+        with tab1:
             st.markdown('''
                 - The user base was reduced to 1000 users (plus 4 additional users for a total of 1004).
                 - Movies that received less than 100 ratings were removed, resulting in about 600 movies in the final rating matrix.
-                - The ratings matrix contains values ranging from 0.5 to 5.
                 ''')
             st.write('final_ratings.csv')
             st.dataframe(pd.read_csv(path + 'data/processed/final_ratings.csv', nrows = 5, usecols = ['userId','movieId','rating'] ))
-    case "Pipeline: Content-based":
-        st.write("## Pipeline: Content-based")
-    case 'Pipeline: Collaborative-filtering':
-        st.write("## Pipeline: Collaborative-filtering")
-    case 'Pipeline: Hybrid':
+
+        with tab2:
+            st.markdown('''
+                - Surprise scikit library
+                - Memory-based k-nearest neighbor (KNN) algorithms (KNNBasic, KNNWithMeans)
+                - Model-based matrix factorization SVD algorithms (SVD, SVD++)
+                ''')
+        with tab3:
+            st.markdown('''
+                - Minimization of RMSE and MAE
+                - GridSearchCV and RandomizedSearchCV
+                ''')
+            st.markdown('''
+                | Models         | Default MAE | Default RMSE  | Tuned MAE | Tuned RMSE |
+                | :---           |    :----:   |          ---: |      ---: |       ---: |
+                | NormalPredictor| 1.098       | 1.382         | -         | -          |
+                | BaselineOnly   | 0.657       | 0.853         | 0.655     |0.851       |
+                | KNNBasic       | 0.66        | 0.865         | 0.658     |0.863       |
+                | KNNWithMeans   | 0.653       | 0.846         | 0.647     |0.843       |
+                | SVD            | 0.637       | 0.831         | 0.617     |0.804       |
+                |SVD++           | 0.626       | 0.817         |-          |-           |
+            ''')
+        with tab4:
+            st.markdown('''
+                - Accuracy
+                - Coverage
+            ''')
+            st.image(Image.open(path + 'Streamlit_Asset/cf_coverages.png'), caption = 'Coverage of CF models')
+            st.markdown('''
+                - Personalization
+                ''')
+    case 'Pipeline: hybrid':
         st.write("## Pipeline: Hybrid")  
     case "Content-based recommendation demo":
         st.write("## Content Based recommendation demo")
