@@ -45,10 +45,10 @@ def set_png_as_page_bg(png_file):
     st.markdown(page_bg_img, unsafe_allow_html=True)
     return
 
-set_png_as_page_bg('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/Streamlit_Asset/V01_Dark.jpg')
+set_png_as_page_bg('Streamlit_Asset/V01_Dark.jpg')
 
-path = '/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/'
-#path = ''
+#path = '/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/'
+path = 'Streamlit_Asset/recommenders.png'
 
 st.title('Movie Recommendations')
 st.write ('A Project by Sviatlana Viarbitskaya & Hamid S. Esfahlani ')
@@ -85,7 +85,7 @@ match page:
             - helps user to discover products, service, content etc.
             ''')
         st.markdown("### Types of recommenders:")
-        st.image(Image.open(path + 'Streamlit_Asset/recommenders.png'), caption = 'Type of Recommenders')
+        st.image(Image.open('Streamlit_Asset/recommenders.png'), caption = 'Type of Recommenders')
 
         # st.markdown(
         #     """
@@ -120,16 +120,16 @@ match page:
             st.write('Size on disk: 308 MB')
             #st.write('The genome-scores is a structured dataset that stores tag relevance scores for movies. It takes the form of a dense matrix, wherein every movie within the genome is assigned a value corresponding to each tag in the genome.')
             #st.write('It serves as a representation of how well movies manifest specific characteristics denoted by tags.')
-            st.dataframe(pd.read_csv(path + 'data/external/genome-scores.csv', nrows=10))
+            st.dataframe(pd.read_csv('data/external/genome-scores.csv', nrows=10))
         if dataset == 'movies.csv':
             st.write('Size on disk: 1,33 MB')
-            st.dataframe(pd.read_csv(path + 'data/external/movies.csv', nrows=10))
+            st.dataframe(pd.read_csv('data/external/movies.csv', nrows=10))
         if dataset == 'ratings.csv':
             st.write('Size on disk: 508 MB')
-            st.dataframe(pd.read_csv(path + 'data/external/ratings.csv', nrows=10))
+            st.dataframe(pd.read_csv('data/external/ratings.csv', nrows=10))
         if dataset == 'tags.csv':
             st.write('Size on disk: 15,8 MB')
-            st.dataframe(pd.read_csv(path + 'data/external/tags.csv', nrows=10))
+            st.dataframe(pd.read_csv('data/external/tags.csv', nrows=10))
     case "Targets and variables":
         st.write("## Targets and Variables")
         st.write("### Content-based")
@@ -158,8 +158,8 @@ match page:
         graph = st.selectbox('Select a graph', graphs)
         if graph == 'Distribution of tag relevance across movie tags (CB)':
             st.write('The tags exhibit varying relevance scores, with most averaging below 0.2 but having high maximum relevance scores, suggesting their specialization and importance in identifying patterns of similarity for content-based modeling in movie recommendations.')
-            chart_data_01 = pd.read_csv(path + 'data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').mean().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Avg relevance score'})
-            chart_data_02 = pd.read_csv(path + 'data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').max().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Max relevance score'})
+            chart_data_01 = pd.read_csv('data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').mean().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Avg relevance score'})
+            chart_data_02 = pd.read_csv('data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').max().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Max relevance score'})
             col1, col2,= st.columns(2)
             with col1:
                 st.write("Avg relevance of tags")
@@ -175,7 +175,7 @@ match page:
             st.write(' The graph below shows the strong presence of outliers in our data - users that rated 10 to 100 times more movies than the average user of the MovieLens platform - the so called super users.')
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = pd.read_csv(path + 'data/external/ratings.csv').userId.value_counts()
+            df = pd.read_csv('data/external/ratings.csv').userId.value_counts()
             plt.figure(figsize=(20, 1))
             p= sns.boxplot(x=df)
             p.set(title='Distribution of rating amount of users', xlabel='amount of ratings', ylabel='users', xlim=[-50,9500])
@@ -187,44 +187,68 @@ match page:
             st.pyplot(fig)
         if graph == 'Average rating vs users rating activity (CF)':
             st.write('The distribution displays notable rating style biases, particularly among "super users," with extremes in average ratings below 2 and above 4, while casual users exhibit the least bias.')
-            df_rating = pd.read_csv('/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/data/external/ratings.csv')
+            df_rating = pd.read_csv('data/external/ratings.csv')
             UserAvgRating = df_rating.groupby('userId').agg({'rating':['mean','count']})
             UserAvgRating.columns = ['Avg rating of user', 'users rating frequency']
             UserAvgRating = UserAvgRating[UserAvgRating['users rating frequency']<2000]
             st.scatter_chart(UserAvgRating, y='Avg rating of user', x='users rating frequency')
         if graph == 'Long-tail graphs':
             st.write("The dataset's small fraction of movies received substantial interaction, leading to high sparsity in both the original and processed data. The presence of a long-tail poses a challenge for collaborative filtering recommendation systems as it can lead to recommending the same popular movies to all users, limiting diversity and personalization.")
-            st.image(Image.open(path + 'Streamlit_Asset/long-tail.png'), caption = 'Long-tail graphs')
+            st.image(Image.open('Streamlit_Asset/long-tail.png'), caption = 'Long-tail graphs')
     case "Pipeline: content-based":
         st.write("## Pipeline: Content-based")
-        tab1, tab2, tab3, tab4 = st.tabs(["Preprocessing", "Model", "Interpretation", "Evaluation"])
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(["Preprocessing", "clustering", 'modeling', "Interpretation", "Evaluation"])
 
         with tab1:
             st.markdown('''
                 - Pivot genome scores dataframe to obtain a dense matrix containing a score (0-1) between each movie and each tag
-                - Add release year from movies dataset and normalize it
-                - Add 20 genres
+                - Add release year from `movies.csv` and normalize it
+                - Add genres from `movies.csv` and encode them as a one-hot numeric array
                 ''')
-            st.dataframe(pd.read_csv(path + 'data/processed/df_ContBaseRec.csv', nrows = 5))
+            st.dataframe(pd.read_csv('data/processed/df_ContBaseRec.csv', nrows = 5))
 
         with tab2:
             st.markdown('''
                 - Clustering with KMeans
-                - Nearest Neighbors
+                - investigate the optimal number of clusters                             
             ''')
-            
+            subtab1, subtab2, subtab3 = st.tabs(['elbow method graph', 'silhouette coeffecients', 'Distribution of movies among the clusters'])
+            with subtab1:
+                st.markdown('''As we can see the elbow graph doesn’t show any significant flattening in the curve.                            
+                            ''')
+                st.image(Image.open('Streamlit_Asset/Elbow_Method.png'))
+            with subtab2:
+                st.markdown('we can see a significant rise of the coefficient in the 18th cluster. This number was taken as the number of clusters')
+                st.image(Image.open('Streamlit_Asset/silhouette_score.png'))
+            with subtab3:
+                st.image(Image.open('Streamlit_Asset/distribution_cluster.png'))
         with tab3:
             st.markdown('''
-                - Efforts to interpret the model using SHAP were hindered by unresolved errors
-                - An alternative approach proved computationally prohibitive due to resource constraints
-            ''')
+                The algorithms used in the content-based model are Nearest Neighbor (NN) and Cosine Similarity (CS) from scikit-learn.
+                
+                * The modeling consists of the following steps:
+                    1. Find out the id of the given movies
+                    2. Calculate the mean of all the given movies (mean point)
+                    3. Train the model on the whole data set
+                    4. Calculate the distance (NN) and the similarity score (CS) of all movies to the mean point
+                    5. Remove the given movies from the returned dataset
+                    6. Remove all the movies which are not in the same cluster as the given movie from the returned dataset
+                    7. Given that X is an integer, return the top X nearest or most similar movies to the given movie.
+                
+                
+                **Diversification** of the result by “post re-rankin”
+                ''')
         with tab4:
+            st.markdown('''
+                - Efforts to interpret the model using SHAP were hindered by unresolved errors
+                - An alternative approach to calculate a feature importance proved computationally prohibitive due to the high number of features (1149) and resource constraints
+            ''')           
+        with tab5:
             st.markdown('''
                 - Coverage : 6%
                 - Personalization : Personalization: Calculate overlapping recommendations based on user similarity.
             ''')
-            st.image(Image.open(path + 'Streamlit_Asset/cb_personalization.png'), caption = 'Personlization CB model')
-           
+            st.image(Image.open('Streamlit_Asset/cb_personalization.png'), caption = 'Personlization CB model')
     case 'Pipeline: collaborative-filtering':
         st.write("## Pipeline: collaborative-filtering")
 
@@ -236,7 +260,7 @@ match page:
                 - Movies that received less than 100 ratings were removed, resulting in about 600 movies in the final rating matrix.
                 ''')
             st.write('final_ratings.csv')
-            st.dataframe(pd.read_csv(path + 'data/processed/final_ratings.csv', nrows = 5, usecols = ['userId','movieId','rating'] ))
+            st.dataframe(pd.read_csv('data/processed/final_ratings.csv', nrows = 5, usecols = ['userId','movieId','rating'] ))
 
         with tab2:
             st.markdown('''
@@ -264,18 +288,17 @@ match page:
                 - Accuracy of ratings predictions
                 - Coverage: The proportion of items or content in a recommendation system that is actually being recommended to users.
             ''')
-            st.image(Image.open(path + 'Streamlit_Asset/cf_coverages.png'), caption = 'Coverage of CF models')
+            st.image(Image.open('Streamlit_Asset/cf_coverages.png'), caption = 'Coverage of CF models')
             st.markdown('''
                 - Personalization: Calculate overlapping recommendations based on user similarity.
                 ''')
-            st.image(Image.open(path + 'Streamlit_Asset/cf_personalization.png'), caption = 'Personlization CF models')
+            st.image(Image.open('Streamlit_Asset/cf_personalization.png'), caption = 'Personlization CF models')
     case 'Pipeline: hybrid':
         st.write("## Pipeline: Hybrid")
         tab1, tab2, tab3 = st.tabs(["Cold-start", "Models", "Evaluation"])
         with tab1:
             st.markdown('''
                 - Problem: Struggling to provide recommendations for new users or items with limited data
-                - Threshold: When to transite from providing generic recommendations to personalized ones
             ''')
             # latext = r'''
             # ## Latex example
@@ -292,26 +315,20 @@ match page:
                 - Ensemble design: Combinatation of CF and CB models
                 - Weighted: Computing a weight for the scores from individual ensemble components
                 - Switching: Switches between various recommender systems depending on current user
+                    - Case 1: If the amount of user’s ratings is lower than a threshold, then we calculate the recommendation from CB and CS  
+                    
+                    - Case 2: If the user rated more movies than indicated by the threshold, we calculate the recommendation  from CB and CF
             ''')
-            # latext = r'''
-            # ## Latex example
-            # ### full equation 
-            # $$ 
-            # \Delta G = \Delta\sigma \frac{a}{b} 
-            # $$ 
-            # ### inline
-            # Assume $\frac{a}{b}=1$ and $\sigma=0$...  
-            # '''
-            # st.write(latext)
+            
         with tab3:
             st.markdown('''
                 - Coverage : 4% (out of more than 10000 movies)
             ''')
-            st.image(Image.open(path + 'Streamlit_Asset/coverage.png'), caption = 'Coverages')
+            st.image(Image.open('Streamlit_Asset/coverage.png'), caption = 'Coverages')
             st.markdown('''
                 - Personalization: Comparison of different models
                 ''')
-            st.image(Image.open(path + 'Streamlit_Asset/personalization.png'), caption = 'Personlizations')
+            st.image(Image.open('Streamlit_Asset/personalization.png'), caption = 'Personlizations')
     case "Content-based recommendation demo":
         st.write("## Content Based recommendation demo")
         from model.ContentBasedRec import ContentBasedRecommender
@@ -319,14 +336,14 @@ match page:
         cbs.load_database()
         status = st.radio("Based on: ", ('UserId', 'Movies'))
         if(status== "UserId"):
-            user = st.selectbox('UserId', (pd.read_csv(path + 'data/processed/final_ratings.csv').userId) )
+            user = st.selectbox('UserId', (pd.read_csv('data/processed/final_ratings.csv').userId) )
             level = st.slider("number of recommendations", 1, 20)
             if(st.button('Submit')):
                 df_rec_cbs = cbs.recommendation(userId= user, number_of_recommendations= level).drop(['movieId','labels'], axis = 1)
                 df_rec_cbs.index = pd.RangeIndex(1, level+1)
                 st.dataframe(df_rec_cbs)
         else:
-            movies = st.multiselect('Enter your movies', (pd.read_csv(path + 'data/processed/df_labeledMovies.csv').title) )
+            movies = st.multiselect('Enter your movies', (pd.read_csv('data/processed/df_labeledMovies.csv').title) )
             level = st.slider("number of recommendations", 1, 20)
             if(st.button('Submit')):
                 df_rec_cbs = cbs.recommendation_movies(given_movies= movies, number_of_recommendations= level).drop(['movieId','labels'], axis = 1)
