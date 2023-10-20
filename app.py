@@ -60,13 +60,12 @@ pages = [
     'Targets and variables',
     'Data limitations',
     'Visualization',
-    'Pipeline: content-based',
     'Pipeline: collaborative-filtering',
+    'Pipeline: content-based',
     'Pipeline: hybrid',
     'Content-based recommendation demo',
     'Collaborative filtering demo',
     'Hybrid recommendation demo',
-    'Interpretation and evaluation',
     'Conclusion']
 page = st.sidebar.radio('Go to', pages)
 
@@ -221,9 +220,10 @@ match page:
             ''')
         with tab4:
             st.markdown('''
-                - Coverage : over 90%!
-                - Personalization : ...
+                - Coverage : 6%
+                - Personalization : Personalization: Calculate overlapping recommendations based on user similarity.
             ''')
+            st.image(Image.open(path + 'Streamlit_Asset/cb_personalization.png'), caption = 'Personlization CB model')
            
     case 'Pipeline: collaborative-filtering':
         st.write("## Pipeline: collaborative-filtering")
@@ -261,15 +261,57 @@ match page:
             ''')
         with tab4:
             st.markdown('''
-                - Accuracy
-                - Coverage
+                - Accuracy of ratings predictions
+                - Coverage: The proportion of items or content in a recommendation system that is actually being recommended to users.
             ''')
             st.image(Image.open(path + 'Streamlit_Asset/cf_coverages.png'), caption = 'Coverage of CF models')
             st.markdown('''
-                - Personalization
+                - Personalization: Calculate overlapping recommendations based on user similarity.
                 ''')
+            st.image(Image.open(path + 'Streamlit_Asset/cf_personalization.png'), caption = 'Personlization CF models')
     case 'Pipeline: hybrid':
-        st.write("## Pipeline: Hybrid")  
+        st.write("## Pipeline: Hybrid")
+        tab1, tab2, tab3 = st.tabs(["Cold-start", "Models", "Evaluation"])
+        with tab1:
+            st.markdown('''
+                - Problem: Struggling to provide recommendations for new users or items with limited data
+                - Threshold: When to transite from providing generic recommendations to personalized ones
+            ''')
+            # latext = r'''
+            # ## Latex example
+            # ### full equation 
+            # $$ 
+            # \Delta G = \Delta\sigma \frac{a}{b} 
+            # $$ 
+            # ### inline
+            # Assume $\frac{a}{b}=1$ and $\sigma=0$...  
+            # '''
+            # st.write(latext)
+        with tab2:
+            st.markdown('''
+                - Ensemble design: Combinatation of CF and CB models
+                - Weighted: Computing a weight for the scores from individual ensemble components
+                - Switching: Switches between various recommender systems depending on current user
+            ''')
+            # latext = r'''
+            # ## Latex example
+            # ### full equation 
+            # $$ 
+            # \Delta G = \Delta\sigma \frac{a}{b} 
+            # $$ 
+            # ### inline
+            # Assume $\frac{a}{b}=1$ and $\sigma=0$...  
+            # '''
+            # st.write(latext)
+        with tab3:
+            st.markdown('''
+                - Coverage : 4% (out of more than 10000 movies)
+            ''')
+            st.image(Image.open(path + 'Streamlit_Asset/coverage.png'), caption = 'Coverages')
+            st.markdown('''
+                - Personalization: Comparison of different models
+                ''')
+            st.image(Image.open(path + 'Streamlit_Asset/personalization.png'), caption = 'Personlizations')
     case "Content-based recommendation demo":
         st.write("## Content Based recommendation demo")
         from model.ContentBasedRec import ContentBasedRecommender
@@ -315,7 +357,6 @@ match page:
             df_rec_hrs = hrs.hybrid_recommendation(userId=user, threshold= t, number_of_recommendations= level).drop(['movieId'], axis = 1)
             df_rec_hrs.index = pd.RangeIndex(1, level+1)
             st.dataframe(df_rec_hrs)
-    case "Interpretation and Evaluation":
-         st.write("## Interpretation and Evaluation") 
+
     case "Conclusion":
         st.write("## Conclusion,  critical view + perspectives (what could have been done if we had 3 more months)")
