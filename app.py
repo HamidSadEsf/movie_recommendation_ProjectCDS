@@ -339,7 +339,7 @@ match page:
             user = st.selectbox('UserId', (pd.read_csv('data/processed/final_ratings.csv').userId) )
             level = st.slider("number of recommendations", 1, 20)
             if(st.button('Submit')):
-                df_rec_cbs = cbs.recommendation(userId= user, number_of_recommendations= level).drop(['movieId','labels'], axis = 1)
+                df_rec_cbs = cbs.recommendation(userId= user, number_of_recommendations= level)
                 df_rec_cbs.index = pd.RangeIndex(1, level+1)
                 st.dataframe(df_rec_cbs)
         else:
@@ -356,7 +356,7 @@ match page:
         from model.CollaborativeFilteringRec import CollaborativeFilteringRecommender
         cfr = CollaborativeFilteringRecommender()
         cfr.recompute_surprise_data()
-        user = st.selectbox('UserId', (pd.read_csv('data/processed/final_ratings.csv').userId) )
+        user = st.selectbox('UserId', (pd.read_csv('data/processed/final_ratings.csv').userId).unique.values)
         level = st.slider("number of recommendations", 1, 20)
         if(st.button('Submit')):
             df_rec_cfr = cfr.recommend(user, level, level).drop(['userId'], axis = 1)
