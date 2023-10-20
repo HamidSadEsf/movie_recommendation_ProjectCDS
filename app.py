@@ -49,8 +49,8 @@ def set_png_as_page_bg(png_file):
     st.markdown(page_bg_img, unsafe_allow_html=True)
     return
 
-path = '/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/'
-#path = ''
+#path = '/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/'
+path = ''
 
 set_png_as_page_bg(path + 'Streamlit_Asset/V01_Dark.jpg')
 
