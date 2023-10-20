@@ -355,6 +355,7 @@ match page:
 
         from model.CollaborativeFilteringRec import CollaborativeFilteringRecommender
         cfr = CollaborativeFilteringRecommender()
+        cfr.recompute_surprise_data()
         user = st.selectbox('UserId', (pd.read_csv('data/processed/final_ratings.csv').userId) )
         level = st.slider("number of recommendations", 1, 20)
         if(st.button('Submit')):
