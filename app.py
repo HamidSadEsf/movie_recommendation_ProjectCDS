@@ -162,7 +162,7 @@ match page:
         graph = st.selectbox('Select a graph', graphs)
         if graph == 'Distribution of tag relevance across movie tags (CB)':
             st.write('The tags exhibit varying relevance scores, with most averaging below 0.2 but having high maximum relevance scores, suggesting their specialization and importance in identifying patterns of similarity for content-based modeling in movie recommendations.')
-            chart_data_01 = pd.read_csv(paht +'data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').mean().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Avg relevance score'})
+            chart_data_01 = pd.read_csv(path +'data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').mean().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Avg relevance score'})
             chart_data_02 = pd.read_csv(path +'data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').max().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Max relevance score'})
             col1, col2,= st.columns(2)
             with col1:
@@ -175,6 +175,7 @@ match page:
  
         if graph == 'Distribution of rating amount according to genre (CB)':
             st.write("The graphs reveal that user interaction in various genres isn't solely dependent on movie counts, leading to data preclustering and the inclusion of genres as features in the content-based model to capture genre-specific differences in user engagement.")
+            st.image(Image.open(path + 'Streamlit_Asset/RatingVsGenre.png'))
         if graph == 'Distribution of rating amount among users (CF)':
             st.write(' The graph below shows the strong presence of outliers in our data - users that rated 10 to 100 times more movies than the average user of the MovieLens platform - the so called super users.')
             import matplotlib.pyplot as plt
@@ -191,17 +192,13 @@ match page:
             st.pyplot(fig)
         if graph == 'Average rating vs users rating activity (CF)':
             st.write('The distribution displays notable rating style biases, particularly among "super users," with extremes in average ratings below 2 and above 4, while casual users exhibit the least bias.')
-            df_rating = pd.read_csv(path +'data/external/ratings.csv')
-            UserAvgRating = df_rating.groupby('userId').agg({'rating':['mean','count']})
-            UserAvgRating.columns = ['Avg rating of user', 'users rating frequency']
-            UserAvgRating = UserAvgRating[UserAvgRating['users rating frequency']<2000]
-            st.scatter_chart(UserAvgRating, y='Avg rating of user', x='users rating frequency')
+            st.image(Image.open(path + 'Streamlit_Asset/AvgRVsRFrequency.png'))
         if graph == 'Long-tail graphs':
             st.write("The dataset's small fraction of movies received substantial interaction, leading to high sparsity in both the original and processed data. The presence of a long-tail poses a challenge for collaborative filtering recommendation systems as it can lead to recommending the same popular movies to all users, limiting diversity and personalization.")
-            st.image(Image.open('Streamlit_Asset/long-tail.png'), caption = 'Long-tail graphs')
+            st.image(Image.open(path + 'Streamlit_Asset/long-tail.png'), caption = 'Long-tail graphs')
     case "Pipeline: content-based":
         st.write("## Pipeline: Content-based")
-        tab1, tab2, tab3, tab4, tab5 = st.tabs(["Preprocessing", "clustering", 'modeling', "Interpretation", "Evaluation"])
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(["Preprocessing", "Clustering", 'Modeling', "Interpretation", "Evaluation"])
 
         with tab1:
             st.markdown('''
@@ -231,13 +228,12 @@ match page:
                 The algorithms used in the content-based model are Nearest Neighbor (NN) and Cosine Similarity (CS) from scikit-learn.
                 
                 * The modeling consists of the following steps:
-                    1. Find out the id of the given movies
-                    2. Calculate the mean of all the given movies (mean point)
-                    3. Train the model on the whole data set
-                    4. Calculate the distance (NN) and the similarity score (CS) of all movies to the mean point
-                    5. Remove the given movies from the returned dataset
-                    6. Remove all the movies which are not in the same cluster as the given movie from the returned dataset
-                    7. Given that X is an integer, return the top X nearest or most similar movies to the given movie.
+                    1. Calculate the mean vector out of all the input movies (vectors)
+                    2. Train the model on the whole data set
+                    3. Calculate the distance (NN) and the cosine similarity (CS) of all movies to the mean vector.
+                    4. Remove the given movies from the returned dataset.
+                    5. Remove all the movies which are not in the same cluster from the returned dataset.
+                    6. Given that X is an integer, return the top X nearest or most similar movies to the given movie.
                 
                 
                 **Diversification** of the result by “post re-rankin”
@@ -292,37 +288,62 @@ match page:
                 - Accuracy of ratings predictions
                 - Coverage: The proportion of items or content in a recommendation system that is actually being recommended to users.
             ''')
-            st.image(Image.open('Streamlit_Asset/cf_coverages.png'), caption = 'Coverage of CF models')
+            st.image(Image.open(path + 'Streamlit_Asset/cf_coverages.png'), caption = 'Coverage of CF models')
             st.markdown('''
                 - Personalization: Calculate overlapping recommendations based on user similarity.
                 ''')
             st.image(Image.open(path + 'Streamlit_Asset/cf_personalization.png'), caption = 'Personlization CF models')
     case 'Pipeline: hybrid':
         st.write("## Pipeline: Hybrid")
-        tab1, tab2, tab3 = st.tabs(["Cold-start", "Models", "Evaluation"])
+        tab1, tab2, tab3 = st.tabs(["Cold starter problem", "Model", "Evaluation"])
         with tab1:
             st.markdown('''
-                - Problem: Struggling to provide recommendations for new users or items with limited data
-            ''')
-            # latext = r'''
-            # ## Latex example
-            # ### full equation 
-            # $$ 
-            # \Delta G = \Delta\sigma \frac{a}{b} 
-            # $$ 
-            # ### inline
-            # Assume $\frac{a}{b}=1$ and $\sigma=0$...  
-            # '''
-            # st.write(latext)
+                - **Problem:** Struggling to provide recommendations for new users or items with limited data \n
+                - **Approach:** Make a static recommendation list based on the ratings, popularity (amount of ratings) and actuality (release year)
+                ''')
+            st.write(r'''
+                        $$ 
+                        S_{cs} = R_{Avg} + (^1/_4\times R_{Cnt}) + (^1/_2\times  Y) 
+                        $$
+                        ''')
+            st.write(r'''- $S_{cs}$ = Cold starter Score''')
+            st.write(r'''- $R_{Avg}$ = average rating of the given movie''')
+            st.write(r'''- $R_{Cnt}$ = rating count''')
+            st.write(r'''- Y  = release year''')
+            st.write('The weights reflect the chosen importance of each value by the authors.')
+            from model.ColdStarter import cold_starters
+            st.dataframe(cold_starters().drop(['movieId'], axis=1))
         with tab2:
             st.markdown('''
                 - Ensemble design: Combinatation of CF and CB models
                 - Weighted: Computing a weight for the scores from individual ensemble components
                 - Switching: Switches between various recommender systems depending on current user
-                    - Case 1: If the amount of user’s ratings is lower than a threshold, then we calculate the recommendation from CB and CS  
-                    
-                    - Case 2: If the user rated more movies than indicated by the threshold, we calculate the recommendation  from CB and CF
-            ''')
+                ''')
+            tab1, tab2 = st.tabs(['Case 1', 'Case 2'])
+            with tab1:
+                st.write(r'''Case 1: If number of movies $<$ threshold:''') 
+                st.write(r'''
+                        $$ 
+                        S_{hr} = S_{cb}\times (1 - \lambda)) + (S_{cs}\times \lambda)
+                        $$ 
+                        ''')
+                st.write(r'''- $S_{hs}$ = Hybrid recommendation Score ''')
+                st.write(r'''- $S_{cb}$ = Content based recommendation Score ''')
+                st.write(r'''- $S_{cs}$ = Cold starter Score ''')
+                st.write(r'''- $\lambda$  = (number of movies / threshold)''')
+            with tab2:
+                st.markdown(r'''Case 2: If number of movies $>$ threshold:
+                ''')
+                st.write(r'''
+                        $$ 
+                        S_{hr} = S_{cb} + (S_{cf}\times \lambda_{cf}))
+                        $$ 
+                        ''')
+                st.write(r'''- $S_{hs}$ = Hybrid recommendation Score ''')
+                st.write(r'''- $S_{cb}$ = Content based recommendation Score ''')
+                st.write(r'''- $S_{cf}$ = Collaborative Filtering Score ''')
+                st.write(r'''- $\lambda_{cf}$  = Collaborative Filtering Weight''')
+                st.image(Image.open(path + 'Streamlit_Asset/CFweightcurve.png'))
             
         with tab3:
             st.markdown('''
@@ -340,46 +361,75 @@ match page:
         cbs.load_database()
         status = st.radio("Based on: ", ('UserId', 'Movies'))
         if(status== "UserId"):
-            user = st.selectbox('UserId', (pd.read_csv(path + 'data/processed/final_ratings.csv').userId) )
-            level = st.slider("number of recommendations", 1, 20)
+            user = st.selectbox('UserId', (pd.read_csv(path + 'data/processed/CBMatrix.csv').userId) )
+            level = st.slider("number of recommendations", 1, 20, 10)
             if(st.button('Submit')):
                 df_rec_cbs = cbs.recommendation(userId= user, number_of_recommendations= level)
                 df_rec_cbs.index = pd.RangeIndex(1, level+1)
                 st.dataframe(df_rec_cbs)
         else:
             movies = st.multiselect('Enter your movies', (pd.read_csv(path + 'data/processed/df_labeledMovies.csv').title) )
-            level = st.slider("number of recommendations", 1, 20)
+            level = st.slider("number of recommendations", 1, 20, 10)
             if(st.button('Submit')):
-                df_rec_cbs = cbs.recommendation_movies(given_movies= movies, number_of_recommendations= level).drop(['movieId','labels'], axis = 1)
+                df_rec_cbs = cbs.recommendation_movies(given_movies= movies, number_of_recommendations= level)
                 df_rec_cbs.index = pd.RangeIndex(1, level+1)
-                st.dataframe(df_rec_cbs)
+                st.dataframe(pd.read_csv(path + 'data/processed/CBMatrix.csv').userId)
         
     case "Collaborative filtering demo":
-        st.write("## Collaborative Filtering Demo")
-        user = st.selectbox('UserId', (pd.read_csv(path + 'data/processed/final_ratings.csv').userId).sort_values().unique())
-        level = st.slider("number of recommendations", 1, 20)
-
         from model.CollaborativeFilteringRec import CollaborativeFilteringRecommender
         cfr = CollaborativeFilteringRecommender()
         cfr.recompute_surprise_data()
+        
+        st.write("## Collaborative Filtering Demo")
+        user = st.selectbox('UserId', list(np.unique(cfr.recommenddf['userId'].values)))
+        level = st.slider("number of recommendations", 1, 20, 10)    
 
         if(st.button('Submit')):
             df_rec_cfr = cfr.recommend(user, level, level).drop(['userId'], axis = 1)
             df_rec_cfr = df_rec_cfr.merge(pd.read_csv(path + 'data/external/movies.csv'), on='movieId').drop(['movieId'], axis = 1)
             df_rec_cfr.index = pd.RangeIndex(1, level+1)
             st.dataframe(df_rec_cfr)
+
     case "Hybrid recommendation demo":
         st.write("## Hybrid recommendation demo")
         from model.HybridRecommendationSystem import HybridRecommender
         hrs = HybridRecommender()
         hrs.load_datasets()
-        user = st.selectbox('UserId', (pd.read_csv(path + 'data/processed/final_ratings.csv').userId) )
-        level = st.slider("number of recommendations", 1, 20)
-        t = st.slider("Threshold", 5, 20)
+        user = st.selectbox('UserId', list(pd.unique(pd.read_csv(path + 'data/processed/CBMatrix.csv').userId)))
+        level = st.slider("number of recommendations", 1, 20,10)
+        t = st.slider("Threshold", 5, 20, 20)
         if(st.button('Submit')):
             df_rec_hrs = hrs.hybrid_recommendation(userId=user, threshold= t, number_of_recommendations= level).drop(['movieId'], axis = 1)
             df_rec_hrs.index = pd.RangeIndex(1, level+1)
             st.dataframe(df_rec_hrs)
 
     case "Conclusion":
-        st.write("## Conclusion,  critical view + perspectives (what could have been done if we had 3 more months)")
+        st.markdown('''
+                    ## Conclusion,
+                    ### critical view
+                    - Dataset
+                    - investigation
+                    - Computational power
+                    - Pace of technical/theoretical Skill acquisition
+                    #### Continuation of the project
+                    ''')
+        tab1, tab2, tab3= st.tabs(['Content based', 'collaborative filtering', 'Hybrid recommendation'])
+        with tab1:
+            st.markdown('''
+                        - increase the number of Movies
+                        - Extract more features from IMDB database
+                        - Trail-and-error diversification techniques
+                        ''')
+        with tab2:
+            st.markdown('''
+                        - Precluster users
+                        - Normalized ratings
+                        - Dealing with long-tailed movies popularity
+                        - investigate the effect of parameters on coverage and Personalization
+                        - rating agglomeration algorithms
+                        ''')
+            with tab3:
+                st.markdown('''
+                            - relevance of parameters while mixing CB and CF
+                            - Address the reduces coverage in comparison to CF and CB
+                            ''')
