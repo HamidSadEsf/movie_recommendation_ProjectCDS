@@ -118,7 +118,7 @@ match page:
             - The ratings matrix contains values ranging from 0.5 to 5
             ''')
         
-        datasets = ['genome-scores.csv', 'movies.csv', 'ratings.csv', 'tags.csv']
+        datasets = ['movies.csv', 'ratings.csv','genome-scores.csv', 'tags.csv']
         dataset = st.radio('Choose the dataset to get a snippet', datasets, horizontal=True)
         if dataset == 'genome-scores.csv':
             st.write('Size on disk: 308 MB')
@@ -145,9 +145,9 @@ match page:
     case "Data limitations":
         st.write("## Data limitations")
         st.markdown('''
-            - Very uneven user interactions throughout the period of data acquition
-            - A large portion of movies is not properly tagged
-            - High sparsity of the rating matrix
+            - Very uneven user interactions throughout the period of data acquisition.
+            - A large portion of movies is not properly tagged.
+            - High sparsity of the rating matrix.
             ''')
 
     case 'Visualization':
@@ -161,7 +161,7 @@ match page:
                 ]
         graph = st.selectbox('Select a graph', graphs)
         if graph == 'Distribution of tag relevance across movie tags (CB)':
-            st.write('The tags exhibit varying relevance scores, with most averaging below 0.2 but having high maximum relevance scores, suggesting their specialization and importance in identifying patterns of similarity for content-based modeling in movie recommendations.')
+            st.write('Distribution of tag relevance across movie tags (CB)')
             chart_data_01 = pd.read_csv(path +'data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').mean().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Avg relevance score'})
             chart_data_02 = pd.read_csv(path +'data/external/genome-scores.csv').drop(['movieId'], axis=1).groupby(by='tagId').max().sort_values(by='relevance',ascending=False, ignore_index=True).reset_index().rename(columns={'index':'Tags','relevance':'Max relevance score'})
             col1, col2,= st.columns(2)
@@ -174,7 +174,7 @@ match page:
                
  
         if graph == 'Distribution of rating amount according to genre (CB)':
-            st.write("The graphs reveal that user interaction in various genres isn't solely dependent on movie counts, leading to data preclustering and the inclusion of genres as features in the content-based model to capture genre-specific differences in user engagement.")
+            st.write('Distribution of rating amount according to genre (CB)')
             st.image(Image.open(path + 'Streamlit_Asset/RatingVsGenre.png'))
         if graph == 'Distribution of rating amount among users (CF)':
             st.write(' The graph below shows the strong presence of outliers in our data - users that rated 10 to 100 times more movies than the average user of the MovieLens platform - the so called super users.')
@@ -202,9 +202,9 @@ match page:
 
         with tab1:
             st.markdown('''
-                - Pivot genome scores dataframe to obtain a dense matrix containing a score (0-1) between each movie and each tag
-                - Add release year from `movies.csv` and normalize it
-                - Add genres from `movies.csv` and encode them as a one-hot numeric array
+                - Pivot genome scores dataframe to obtain a dense matrix containing a score (0-1) between each movie and each tag.
+                - Add release year from `movies.csv` and normalize it.
+                - Add genres from `movies.csv` and encode them as a one-hot numeric array.
                 ''')
             st.dataframe(pd.read_csv(path + 'data/processed/df_ContBaseRec.csv', nrows = 5))
 
@@ -236,7 +236,7 @@ match page:
                     6. Given that X is an integer, return the top X nearest or most similar movies to the given movie.
                 
                 
-                **Diversification** of the result by “post re-rankin”
+                **Diversification** of the result by “post re-ranking”
                 ''')
         with tab4:
             st.markdown('''
@@ -246,7 +246,7 @@ match page:
         with tab5:
             st.markdown('''
                 - Coverage : 6%
-                - Personalization : Personalization: Calculate overlapping recommendations based on user similarity.
+                - Personalization: Calculate overlapping recommendations based on user similarity.
             ''')
             st.image(Image.open(path + 'Streamlit_Asset/cb_personalization.png'), caption = 'Personlization CB model')
     case 'Pipeline: collaborative-filtering':
@@ -395,7 +395,7 @@ match page:
         from model.HybridRecommendationSystem import HybridRecommender
         hrs = HybridRecommender()
         hrs.load_datasets()
-        user = st.selectbox('UserId', list(pd.unique(pd.read_csv(path + 'data/processed/CBMatrix.csv').userId)))
+        user = st.selectbox('UserId', list(pd.unique(pd.read_csv(path + 'data/processed/Matrix.csv').userId)))
         level = st.slider("number of recommendations", 1, 20,10)
         t = st.slider("Threshold", 5, 20, 20)
         if(st.button('Submit')):
