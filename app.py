@@ -405,18 +405,18 @@ match page:
 
     case "Conclusion":
         st.markdown('''
-                    ## Conclusion,
-                    ### critical view
+                    ## Conclusion
+                    ### Critical view
                     - Dataset
-                    - investigation
+                    - Investigation
                     - Computational power
-                    - Pace of technical/theoretical Skill acquisition
-                    #### Continuation of the project
+                    - Pace of technical/theoretical skill acquisition
+                    ### Continuation of the project
                     ''')
-        tab1, tab2, tab3= st.tabs(['Content based', 'collaborative filtering', 'Hybrid recommendation'])
+        tab1, tab2, tab3= st.tabs(['Content based', 'Collaborative filtering', 'Hybrid recommendation'])
         with tab1:
             st.markdown('''
-                        - increase the number of Movies
+                        - Increase the number of movies
                         - Extract more features from IMDB database
                         - Trail-and-error diversification techniques
                         ''')
@@ -425,11 +425,11 @@ match page:
                         - Precluster users
                         - Normalized ratings
                         - Dealing with long-tailed movies popularity
-                        - investigate the effect of parameters on coverage and Personalization
+                        - Investigate the effect of parameters on coverage and personalization
                         - rating agglomeration algorithms
                         ''')
             with tab3:
                 st.markdown('''
-                            - relevance of parameters while mixing CB and CF
+                            - Relevance of parameters while mixing CB and CF
                             - Address the reduces coverage in comparison to CF and CB
                             ''')
