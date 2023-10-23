@@ -7,3 +7,5 @@ df = get_df_ContBaseRec()
 
 from clustering_content_based import get_labeledMovies
 get_labeledMovies(df, clusters=15)
+
+import preprocess_evaluation

@@ -1,14 +1,28 @@
 import numpy as np
 import pandas as pd
+import os.path
 from sklearn import preprocessing
 from collections import defaultdict
-from surprise import Dataset, Reader, SVD, KNNBasic, KNNWithMeans, dump, accuracy
+from surprise import Dataset, Reader, SVD, SVDpp, KNNBasic, KNNWithMeans, dump, accuracy
 from surprise.model_selection import cross_validate
 from sklearn.preprocessing import MinMaxScaler
 
+#root_path = '/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/'
+root_path = ''
+
+movie_df = pd.read_csv(root_path + './data/external/movies.csv')
+orig_ratings = pd.read_csv(root_path + './data/external/ratings.csv')
+avg_ratings = orig_ratings.groupby('movieId')['rating'].mean().reset_index()
+amnt_ratings = orig_ratings.groupby('movieId')['rating'].count().reset_index()
+movie_df = movie_df.merge( avg_ratings,on='movieId', how='outer')
+movie_df.rename(columns = {'rating': 'avg_rating'}, inplace=True)
+movie_df = movie_df.merge( amnt_ratings,on='movieId', how='outer')
+movie_df.rename(columns = {'rating': 'amnt_rating'}, inplace=True)
+movie_df['amnt_rating_inverse'] = 1/(2*movie_df['amnt_rating'])
+
 def prepare_data():
     print("Getting the ratings matrix...")
-    ratings = pd.read_csv('./data/processed/final_ratings.csv')
+    ratings = pd.read_csv(root_path + './data/processed/final_ratings.csv')
     print("Preparing data in the Suprise format...")
     reader = Reader(rating_scale=(0.5, 5))
     data = Dataset.load_from_df(ratings[["userId", "movieId", "rating"]], reader)
@@ -34,13 +48,13 @@ def train_KNN_CFWeights(trainset, testset, data):
     cv_result = round(cv_result['test_rmse'].mean(),3)
     print('Mean CV RMSE is ' + str(cv_result))
     # save model and its predictions to the disk
-    dump.dump('model/trained_models/KNN_CFWeights',algo=knn,predictions=knn_predictions)
+    dump.dump(root_path + 'model/trained_models/KNN_CFWeights',algo=knn,predictions=knn_predictions)
     return knn_predictions, knn
     
     
 def train_CF_Model(trainset, testset, data):
-    print("Training and saving a KNN model for calculating the CF model weights in hybrid setup..")
-    algo = SVD()
+    print("Training and saving a CF model ...")
+    algo = SVD(n_factors=170, n_epochs=90,lr_all=0.005, reg_all=0.05)
     algo.fit(trainset)
     algo_predictions = algo.test(testset)
     
@@ -49,7 +63,7 @@ def train_CF_Model(trainset, testset, data):
     cv_result = round(cv_result['test_rmse'].mean(),3)
     print('Mean CV RMSE is ' + str(cv_result))
     # save model and its predictions to the disk
-    dump.dump('model/trained_models/CF_Model',algo=algo,predictions=algo_predictions)
+    dump.dump(root_path + 'model/trained_models/CF_Model',algo=algo,predictions=algo_predictions)
     return algo_predictions, algo
     
 
@@ -62,18 +76,21 @@ def train_cf_models():
     print("Training is done!")
     return trainset, testset, data, cf_algo, cf_predictions, knn, knn_predictions    
 
-def get_collaborative_filtering_weight(userId, threshold = 0, algo=None):
+def get_collaborative_filtering_weights(trainset = None, similarity_mat = None, threshold = 0, algo=None):
     if algo is None:
-        knn_predictions, knn = dump.load('./model/trained_models/KNN_CFWeights')
-    trainset, ___, ___ = prepare_data()
-    iuid = trainset.to_inner_uid(userId)    
-    similarity_mat = knn.compute_similarities()
-    
+        knn_predictions, knn = dump.load(root_path + './model/trained_models/KNN_CFWeights')
+        
+    if trainset is None:
+        trainset, ___, ___ = prepare_data()
+        
+    if similarity_mat is None:
+        similarity_mat = knn.compute_similarities()
+        
     a = np.empty(len(similarity_mat))
     for i in range(len(similarity_mat)):
         a[i] = (similarity_mat[i] > 0).sum() -1
     weights = a / a.max()
-    return round(weights[iuid],3)
+    return weights
 
 def order_test_results(predictions, n = None):
     # First map the predictions to each user.
@@ -103,34 +120,46 @@ class CollaborativeFilteringRecommender():
         self.recommenddf = None
         self.predictions = None
         self.mean_cv_rmse = None
-
-    def fit_and_predict(self):
+        self.cv_result = None
+        
+        path = root_path+ './data/processed/CFMatrix.csv'
+        if os.path.isfile(path) == True:
+            self.recommenddf = pd.read_csv(path)
+            
+    def recompute_surprise_data(self):
         #prepare data
         self.trainset, self.testset, self.data = prepare_data()
-        
+
+    def fit_and_predict(self):
         if (self.model is None or self.pred_test is None):
             #print('Fitting the train data...')
-            self.model = SVD()
+            self.model = SVD(n_factors=170, n_epochs=90,lr_all=0.005, reg_all=0.05)
             self.model.fit(self.trainset)       
 
             #print('Predicting the test data...')
             self.pred_test = self.model.test(self.testset)
+            dump.dump(root_path + 'model/trained_models/CF_Model',algo= self.model ,predictions=self.pred_test)
             
         #rmse = round(accuracy.rmse(self.pred_test), 3)
-        #print('RMSE for the predicted result is ' + str(rmse))   
+        #print('RMSE for the predicted result is ' + str(rmse))
         
         self.predictions = order_test_results(self.pred_test)
+        
         self.recommenddf = pd.DataFrame(columns=['userId', 'movieId', 'rating'])
         for item in self.predictions:
             subdf = pd.DataFrame(self.predictions[item], columns=['movieId', 'rating'])
             subdf['userId'] = item
             cols = subdf.columns.tolist()
             cols = cols[-1:] + cols[:-1]
-            subdf = subdf[cols]        
+            subdf = subdf[cols]          
             self.recommenddf = pd.concat([self.recommenddf, subdf], axis = 0)
         
-        scaler = MinMaxScaler()
-        self.recommenddf ['cf_score'] = scaler.fit_transform(self.recommenddf .rating.values.reshape(-1, 1))
+        #self.recommenddf = self.recommenddf[self.recommenddf.amnt_rating_inverse != 1]
+        #self.recommenddf.sort_values(by=['cf_score'], ascending=[False])
+        #self.recommenddf['cf_score'] = scaler.fit_transform(self.recommenddf.rating.values.reshape(-1, 1))
+        
+        # save to the harddrive:
+        self.recommenddf.to_csv(root_path + './data/processed/CFMatrix.csv')
         print("Done calculating predictions and scores!")
 
     def predict(self, userId, movieId):
@@ -140,17 +169,26 @@ class CollaborativeFilteringRecommender():
     def cross_validate(self):
         print('Cross Validating the data...')
         cv_result = cross_validate(self.model, self.data, n_jobs=-1)
-        cv_result = round(cv_result['test_rmse'].mean(),3)
-        self.mean_cv_rmse = cv_result
-        print('Mean CV RMSE is ' + str(cv_result))
+        self.cv_result = cv_result
+        self.mean_cv_rmse = round(cv_result['test_rmse'].mean(),3)
+        print('Mean CV RMSE is ' + str(self.mean_cv_rmse))
+        print('Mean CV MAE is ' + str(round(cv_result['test_mae'].mean(),3)))
         return cv_result
     
-    def recommend(self, user_id, n):
-        #print('All ratings for userid : ' + str(user_id) + ' ...')
-        df = self.recommenddf[self.recommenddf['userId'] == user_id].head(n)
-        return df
+    def recommend(self, user_id, n1=50, n2=20, version = 0):
+        df = self.recommenddf[self.recommenddf['userId'] == user_id]
+        df = df.merge(movie_df, on='movieId', how='inner')
+        scaler = MinMaxScaler()
+        if version == 1:
+            df = df.head(n1)
+            df.loc[:,['rating', 'avg_rating', 'amnt_rating', 'amnt_rating_inverse']] = scaler.fit_transform(df[['rating', 'avg_rating', 'amnt_rating', 'amnt_rating_inverse']])
+            #df[['rating', 'avg_rating', 'amnt_rating', 'amnt_rating_inverse']]= scaler.fit_transform(df[['rating', 'avg_rating', 'amnt_rating', 'amnt_rating_inverse']])
+            df['cf_score'] = df.rating + df.avg_rating + df.amnt_rating_inverse
+            df.sort_values(by=['cf_score'], ascending=[False], inplace=True)
+        else:
+            df['cf_score'] = scaler.fit_transform(df.rating.values.reshape(-1, 1))
+        return df.head(n2)
     
     def get_rankings_for_movies(self, user_id, movies):
         df = self.recommenddf[(self.recommenddf["movieId"].isin(movies)) & (self.recommenddf['userId'] == user_id) ]
         return df
-
