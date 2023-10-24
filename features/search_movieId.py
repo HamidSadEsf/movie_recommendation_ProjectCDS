@@ -5,8 +5,8 @@ def search_movieId(given_movies):
     
     Parameters
     ----------
-    given_movies:  list of lists of two strings.
-        [['movie Title_1','release year_2'],...,['movie Title_n','release year_n']]]
+    given_movies:  list of movie title.
+        ['movie Title_1',...,'movie Title_n']
     
     Returns
     ----------
@@ -16,8 +16,8 @@ def search_movieId(given_movies):
     """
     df_movies = pd.read_csv('data/external/movies.csv')
     given_movies_ids = []
-    for title, year in given_movies:
+    for title in given_movies:
         given_movie_id = df_movies[
-            df_movies.title.str.contains(r'\b{}\b.*\b{}\b.$'.format(title, year), case=False)].movieId.item()
+            df_movies.title == title].movieId.item()
         given_movies_ids.append(given_movie_id)
     return given_movies_ids

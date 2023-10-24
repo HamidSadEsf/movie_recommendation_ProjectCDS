@@ -7,8 +7,11 @@ from surprise import Dataset, Reader, SVD, SVDpp, KNNBasic, KNNWithMeans, dump, 
 from surprise.model_selection import cross_validate
 from sklearn.preprocessing import MinMaxScaler
 
-movie_df = pd.read_csv('./data/external/movies.csv')
-orig_ratings = pd.read_csv('./data/external/ratings.csv')
+#root_path = '/home/mumu/Documents/DS/movie_recommendation_ProjectCDS/'
+root_path = ''
+
+movie_df = pd.read_csv(root_path + './data/external/movies.csv')
+orig_ratings = pd.read_csv(root_path + './data/external/ratings.csv')
 avg_ratings = orig_ratings.groupby('movieId')['rating'].mean().reset_index()
 amnt_ratings = orig_ratings.groupby('movieId')['rating'].count().reset_index()
 movie_df = movie_df.merge( avg_ratings,on='movieId', how='outer')
@@ -19,7 +22,7 @@ movie_df['amnt_rating_inverse'] = 1/(2*movie_df['amnt_rating'])
 
 def prepare_data():
     print("Getting the ratings matrix...")
-    ratings = pd.read_csv('./data/processed/final_ratings.csv')
+    ratings = pd.read_csv(root_path + './data/processed/final_ratings.csv')
     print("Preparing data in the Suprise format...")
     reader = Reader(rating_scale=(0.5, 5))
     data = Dataset.load_from_df(ratings[["userId", "movieId", "rating"]], reader)
@@ -45,7 +48,7 @@ def train_KNN_CFWeights(trainset, testset, data):
     cv_result = round(cv_result['test_rmse'].mean(),3)
     print('Mean CV RMSE is ' + str(cv_result))
     # save model and its predictions to the disk
-    dump.dump('model/trained_models/KNN_CFWeights',algo=knn,predictions=knn_predictions)
+    dump.dump(root_path + 'model/trained_models/KNN_CFWeights',algo=knn,predictions=knn_predictions)
     return knn_predictions, knn
     
     
@@ -60,7 +63,7 @@ def train_CF_Model(trainset, testset, data):
     cv_result = round(cv_result['test_rmse'].mean(),3)
     print('Mean CV RMSE is ' + str(cv_result))
     # save model and its predictions to the disk
-    dump.dump('model/trained_models/CF_Model',algo=algo,predictions=algo_predictions)
+    dump.dump(root_path + 'model/trained_models/CF_Model',algo=algo,predictions=algo_predictions)
     return algo_predictions, algo
     
 
@@ -75,7 +78,7 @@ def train_cf_models():
 
 def get_collaborative_filtering_weights(trainset = None, similarity_mat = None, threshold = 0, algo=None):
     if algo is None:
-        knn_predictions, knn = dump.load('./model/trained_models/KNN_CFWeights')
+        knn_predictions, knn = dump.load(root_path + './model/trained_models/KNN_CFWeights')
         
     if trainset is None:
         trainset, ___, ___ = prepare_data()
@@ -119,7 +122,7 @@ class CollaborativeFilteringRecommender():
         self.mean_cv_rmse = None
         self.cv_result = None
         
-        path = './data/processed/CFMatrix.csv'
+        path = root_path+ './data/processed/CFMatrix.csv'
         if os.path.isfile(path) == True:
             self.recommenddf = pd.read_csv(path)
             
@@ -135,7 +138,7 @@ class CollaborativeFilteringRecommender():
 
             #print('Predicting the test data...')
             self.pred_test = self.model.test(self.testset)
-            dump.dump('model/trained_models/CF_Model',algo= self.model ,predictions=self.pred_test)
+            dump.dump(root_path + 'model/trained_models/CF_Model',algo= self.model ,predictions=self.pred_test)
             
         #rmse = round(accuracy.rmse(self.pred_test), 3)
         #print('RMSE for the predicted result is ' + str(rmse))
@@ -156,7 +159,7 @@ class CollaborativeFilteringRecommender():
         #self.recommenddf['cf_score'] = scaler.fit_transform(self.recommenddf.rating.values.reshape(-1, 1))
         
         # save to the harddrive:
-        self.recommenddf.to_csv('./data/processed/CFMatrix.csv')
+        self.recommenddf.to_csv(root_path + './data/processed/CFMatrix.csv')
         print("Done calculating predictions and scores!")
 
     def predict(self, userId, movieId):
