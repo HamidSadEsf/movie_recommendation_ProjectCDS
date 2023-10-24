@@ -395,7 +395,7 @@ match page:
         from model.HybridRecommendationSystem import HybridRecommender
         hrs = HybridRecommender()
         hrs.load_datasets()
-        user = st.selectbox('UserId', list(pd.unique(pd.read_csv(path + 'data/processed/Matrix.csv').userId)))
+        user = st.selectbox('UserId', list(pd.unique(pd.read_csv(path + 'data/processed/HRMatrix.csv').userId)))
         level = st.slider("number of recommendations", 1, 20,10)
         t = st.slider("Threshold", 5, 20, 20)
         if(st.button('Submit')):
