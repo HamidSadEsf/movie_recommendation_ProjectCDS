@@ -106,7 +106,7 @@ match page:
         st.markdown('''
             - Understand and implement the two concepts of content-based (CB) and user-based collaborative filtering (CF) in two different engines.
             - Develop a hybrid movie recommendation system that combines these two engines to provide more diverse and still accurate recommendations.
-            - Evaluate the effectiveness of the hybrid recommendation system through quantitative metrics such as accuracy, diversity and personalisation.
+            - Evaluate the effectiveness of the hybrid recommendation system through quantitative metrics such as accuracy, coverage and personalisation.
             ''')
 
     case "Datasets":
@@ -118,7 +118,7 @@ match page:
             - The ratings matrix contains values ranging from 0.5 to 5
             ''')
         
-        datasets = ['movies.csv', 'ratings.csv','genome-scores.csv', 'tags.csv']
+        datasets = ['movies.csv', 'ratings.csv','genome-scores.csv', 'genome-tags.csv']
         dataset = st.radio('Choose the dataset to get a snippet', datasets, horizontal=True)
         if dataset == 'genome-scores.csv':
             st.write('Size on disk: 308 MB')
@@ -131,9 +131,9 @@ match page:
         if dataset == 'ratings.csv':
             st.write('Size on disk: 508 MB')
             st.dataframe(pd.read_csv(path + 'data/external/ratings.csv', nrows=10))
-        if dataset == 'tags.csv':
-            st.write('Size on disk: 15,8 MB')
-            st.dataframe(pd.read_csv(path + 'data/external/tags.csv', nrows=10))
+        if dataset == 'genome-tags.csv':
+            st.write('Size on disk: 18 MB')
+            st.dataframe(pd.read_csv(path + 'data/external/genome-tags.csv', nrows=10))
     case "Targets and variables":
         st.write("## Targets and Variables")
         st.write("### Content-based")
@@ -407,9 +407,8 @@ match page:
         st.markdown('''
                     ## Conclusion
                     ### Critical view
-                    - Dataset
-                    - Investigation
-                    - Computational power
+                    - Dataset limitation
+                    - Lack of computational power
                     - Pace of technical/theoretical skill acquisition
                     ### Continuation of the project
                     ''')
