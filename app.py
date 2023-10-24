@@ -106,7 +106,7 @@ match page:
         st.markdown('''
             - Understand and implement the two concepts of content-based (CB) and user-based collaborative filtering (CF) in two different engines.
             - Develop a hybrid movie recommendation system that combines these two engines to provide more diverse and still accurate recommendations.
-            - Evaluate the effectiveness of the hybrid recommendation system through quantitative metrics such as accuracy, diversity and personalisation.
+            - Evaluate the effectiveness of the hybrid recommendation system through quantitative metrics such as accuracy, coverage and personalisation.
             ''')
 
     case "Datasets":
