@@ -2,6 +2,8 @@
 /.ipynb_checkpoints
 /model/.ipynb_checkpoints/
 /__pycache__
+/.vscode
+/.idea
 /data_script/__pycache__
 /model/__pycache__
 features/__pycache__
